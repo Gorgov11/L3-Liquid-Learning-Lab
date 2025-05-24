@@ -133,10 +133,10 @@ export function VisualPanel({ currentImage, currentMindMap, onClose, conversatio
             </h4>
             
             <div className="relative aspect-square bg-muted rounded-xl overflow-hidden">
-              {currentImage || generateImageMutation.data?.url ? (
+              {currentImage ? (
                 <>
                   <img 
-                    src={currentImage || generateImageMutation.data?.url} 
+                    src={currentImage} 
                     alt="AI-generated educational visual" 
                     className="w-full h-full object-cover"
                   />
@@ -146,7 +146,7 @@ export function VisualPanel({ currentImage, currentMindMap, onClose, conversatio
                     <p className="text-gray-300 text-xs">AI-generated diagram</p>
                   </div>
                 </>
-              ) : generateImageMutation.isPending ? (
+              ) : false ? (
                 <div className="w-full h-full flex items-center justify-center image-skeleton">
                   <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                 </div>
@@ -160,11 +160,7 @@ export function VisualPanel({ currentImage, currentMindMap, onClose, conversatio
               )}
             </div>
 
-            {generateImageMutation.error && (
-              <p className="text-sm text-destructive">
-                Failed to generate image. Please try again.
-              </p>
-            )}
+
           </div>
 
           {/* Mind Map */}

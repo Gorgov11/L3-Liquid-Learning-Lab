@@ -5,6 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Mic, MicOff, Send, Bot, User, Loader2, Brain, BookOpen, ImageIcon, Volume2, VolumeX, Tag, Sparkles } from 'lucide-react';
 import { SettingsModal } from './settings-modal';
 import { DynamicVisualPanel } from './dynamic-visual-panel';
+import { VoiceControlPanel } from './voice-control-panel';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { useTextToSpeech } from '@/hooks/use-text-to-speech';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -40,7 +41,19 @@ export function ChatInterface({ conversationId, currentUserId }: ChatInterfacePr
     error: speechError
   } = useSpeechRecognition();
 
-  const { speak, stop: stopSpeaking, isSpeaking } = useTextToSpeech();
+  const { 
+    speak, 
+    stop: stopSpeaking, 
+    pause: pauseSpeaking, 
+    resume: resumeSpeaking, 
+    isSpeaking, 
+    isPaused, 
+    currentTime, 
+    duration, 
+    volume, 
+    setVolume, 
+    seekTo 
+  } = useTextToSpeech();
 
   // Fetch messages for current conversation
   const { data: messages = [], isLoading } = useQuery<ChatMessage[]>({
