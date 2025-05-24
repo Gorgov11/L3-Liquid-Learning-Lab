@@ -5,10 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, Clock, Plus, Bot, Target, BookOpen, Users, Zap, TrendingUp, Star, CheckCircle2, AlertCircle, Play, Pause, MoreHorizontal, ArrowLeft, Sparkles } from 'lucide-react';
+import { Calendar, Clock, Plus, Bot, Target, BookOpen, Users, Zap, TrendingUp, Star, CheckCircle2, AlertCircle, Play, Pause, MoreHorizontal, Sparkles } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { WeeklyCalendar } from '@/components/weekly-calendar';
-import { useLocation } from 'wouter';
+import { BackNavigation } from '@/components/back-navigation';
 
 interface ScheduleEvent {
   id: string;
@@ -37,7 +37,6 @@ interface StudyGoal {
 }
 
 export default function Schedule() {
-  const [, setLocation] = useLocation();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [activeSession, setActiveSession] = useState<string | null>(null);
   const [sessionTime, setSessionTime] = useState(0);
@@ -314,28 +313,19 @@ export default function Schedule() {
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
+      <BackNavigation title="Back to Chat" showHomeButton={false} />
+      
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setLocation('/')}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Chat
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-3">
-                <Calendar className="w-8 h-8 text-primary" />
-                Study Schedule
-              </h1>
-              <p className="text-muted-foreground mt-2">
-                AI-powered scheduling to optimize your learning journey
-              </p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-3">
+              <Calendar className="w-8 h-8 text-primary svg-pulse" />
+              Study Schedule
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              AI-powered scheduling to optimize your learning journey
+            </p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -353,12 +343,12 @@ export default function Schedule() {
             >
               {isGeneratingSchedule ? (
                 <>
-                  <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                  <Sparkles className="w-4 h-4 mr-2 svg-spin-glow" />
                   Generating...
                 </>
               ) : (
                 <>
-                  <Bot className="w-4 h-4 mr-2" />
+                  <Bot className="w-4 h-4 mr-2 svg-bounce" />
                   Generate Schedule
                 </>
               )}
