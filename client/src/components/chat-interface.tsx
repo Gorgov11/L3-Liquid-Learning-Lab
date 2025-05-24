@@ -110,7 +110,7 @@ export function ChatInterface({ conversationId, currentUserId }: ChatInterfacePr
         content: messageContent,
         generateImage: autoImageEnabled,
         generateMindMap: autoMindMapEnabled,
-        addEmojis: addEmojisEnabled,
+
         learningCategory: learningCategory,
       });
     } finally {
