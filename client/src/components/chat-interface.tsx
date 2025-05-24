@@ -128,8 +128,6 @@ export function ChatInterface({ conversationId, currentUserId }: ChatInterfacePr
         content: messageContent,
         generateImage: autoImageEnabled,
         generateMindMap: autoMindMapEnabled,
-
-        learningCategory: learningCategory,
       });
     } finally {
       setIsGeneratingImage(false);
@@ -532,51 +530,14 @@ Try asking me to:
                 </div>
               </div>
 
-              {/* Center: Learning Category Selector */}
+              {/* Center: AI Subject Detection */}
               <div className="flex items-center gap-3">
-                <div className="text-xs font-medium text-muted-foreground">Subject</div>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="relative group">
-                      <select 
-                        value={learningCategory}
-                        onChange={(e) => setLearningCategory(e.target.value)}
-                        className="h-10 w-16 appearance-none bg-gradient-to-r from-background to-muted/50 border border-border rounded-xl text-center text-lg hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all duration-200 group-hover:shadow-md"
-                      >
-                        <option value="general">📚</option>
-                        <option value="science">🔬</option>
-                        <option value="math">📐</option>
-                        <option value="history">🏛️</option>
-                        <option value="language">🗣️</option>
-                        <option value="programming">💻</option>
-                        <option value="art">🎨</option>
-                      </select>
-                      <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-xs text-muted-foreground font-medium">
-                        {learningCategory === 'general' && 'General'}
-                        {learningCategory === 'science' && 'Science'}
-                        {learningCategory === 'math' && 'Math'}
-                        {learningCategory === 'history' && 'History'}
-                        {learningCategory === 'language' && 'Language'}
-                        {learningCategory === 'programming' && 'Code'}
-                        {learningCategory === 'art' && 'Art'}
-                      </div>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    <div className="text-center">
-                      <p className="font-medium text-sm">Learning Category</p>
-                      <p className="text-xs text-muted-foreground">
-                        Current: {learningCategory === 'general' && 'General Learning'}
-                        {learningCategory === 'science' && 'Science & Biology'}
-                        {learningCategory === 'math' && 'Mathematics'}
-                        {learningCategory === 'history' && 'History'}
-                        {learningCategory === 'language' && 'Language Arts'}
-                        {learningCategory === 'programming' && 'Programming'}
-                        {learningCategory === 'art' && 'Art & Design'}
-                      </p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
+                <div className="text-xs font-medium text-muted-foreground">AI Subject</div>
+                <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-background to-muted/50 border border-border rounded-xl">
+                  <Brain className="w-4 h-4 text-primary svg-pulse" />
+                  <span className="text-sm font-medium text-primary">Auto-Detect</span>
+                  <Sparkles className="w-3 h-3 text-primary svg-bounce" />
+                </div>
               </div>
 
               {/* Right: Quick Actions */}

@@ -47,7 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/conversations/:conversationId/messages", async (req, res) => {
     try {
       const conversationId = parseInt(req.params.conversationId);
-      const { content, generateImage, generateMindMap, addEmojis, learningCategory } = req.body;
+      const { content, generateImage, generateMindMap, addEmojis = true } = req.body;
 
       // Save user message
       const userMessage = await storage.createMessage({
@@ -68,13 +68,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userInterests = await storage.getUserInterests(conversation.userId);
       const interestsText = userInterests.map(i => i.interest).join(", ");
 
-      // Generate AI response
-      const categoryContext = learningCategory && learningCategory !== 'general' ? `This question is in the ${learningCategory} category. ` : '';
+      // AI-powered subject detection
+      let detectedSubject = "General Learning";
+      let subjectIcon = "📚";
+      
+      try {
+        const subjectDetectionPrompt = `Analyze this learning question and categorize it into the most appropriate subject. 
+        Question: "${content}"
+        
+        Respond with JSON in this format: {
+          "subject": "specific subject name",
+          "category": "broader category",
+          "icon": "appropriate emoji",
+          "confidence": 0.95
+        }
+        
+        Choose from subjects like: Mathematics, Physics, Chemistry, Biology, History, Literature, Computer Science, Art, Music, Philosophy, Psychology, Economics, Geography, Languages, etc.`;
+
+        const subjectResponse = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [{ role: "user", content: subjectDetectionPrompt }],
+          response_format: { type: "json_object" },
+          max_tokens: 150,
+        });
+
+        const subjectData = JSON.parse(subjectResponse.choices[0].message.content || "{}");
+        if (subjectData.subject && subjectData.confidence > 0.7) {
+          detectedSubject = subjectData.subject;
+          subjectIcon = subjectData.icon || "📚";
+        }
+      } catch (error) {
+        console.log("Subject detection failed, using general category");
+      }
+
+      // Update conversation title with detected subject (only for first few messages)
+      const existingMessages = await storage.getMessagesByConversationId(conversationId);
+      if (existingMessages.length <= 2) {
+        try {
+          await storage.updateConversation(conversationId, {
+            title: `${subjectIcon} ${detectedSubject} Discussion`
+          });
+        } catch (error) {
+          console.log("Failed to update conversation title");
+        }
+      }
+
+      // Generate AI response with subject context
       const emojiInstruction = addEmojis ? 'Use relevant emojis throughout your response to make it more engaging and visual. ' : '';
       
-      const systemPrompt = `You are an AI tutor for Liquid Learning Lab. You provide educational explanations that are clear, engaging, and personalized. 
-      ${categoryContext}${emojiInstruction}${interestsText ? `The user is interested in: ${interestsText}. Try to relate topics to these interests when relevant.` : ''}
-      Provide helpful, accurate educational content. Keep responses conversational but informative.`;
+      const systemPrompt = `You are an AI tutor for Liquid Learning Lab specializing in ${detectedSubject}. You provide educational explanations that are clear, engaging, and personalized. 
+      ${emojiInstruction}${interestsText ? `The user is interested in: ${interestsText}. Try to relate topics to these interests when relevant.` : ''}
+      Focus on providing accurate, educational content in the context of ${detectedSubject}. Keep responses conversational but informative.`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
