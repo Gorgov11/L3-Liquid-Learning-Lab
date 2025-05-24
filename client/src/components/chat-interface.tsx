@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Mic, MicOff, Send, Bot, User, Loader2 } from 'lucide-react';
+import { Mic, MicOff, Send, Bot, User, Loader2, Brain, BookOpen, ImageIcon } from 'lucide-react';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { useTextToSpeech } from '@/hooks/use-text-to-speech';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -144,25 +144,106 @@ Try asking me to:
   const displayMessages = conversationId && messages.length > 0 ? messages : [welcomeMessage];
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Chat Header */}
-      <div className="bg-card border-b border-border px-6 py-4">
-        <h2 className="font-semibold text-lg">AI Learning Session</h2>
-        <p className="text-sm text-muted-foreground">
-          Ask questions, request visualizations, or explore topics
-        </p>
-      </div>
-
-      {/* Messages */}
-      <ScrollArea ref={scrollAreaRef} className="flex-1 p-6">
-        <div className="space-y-4">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin mr-2" />
-              <span>Loading messages...</span>
+    <div className="flex flex-col h-full bg-background">
+      {/* Minimal Chat Header - ChatGPT style */}
+      {conversationId && messages.length === 0 && (
+        <div className="flex-1 flex items-center justify-center px-6">
+          <div className="max-w-2xl text-center space-y-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary via-chart-2 to-chart-3 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+              <Bot className="w-8 h-8 text-primary-foreground" />
             </div>
-          ) : (
-            displayMessages.map((msg) => (
+            <div>
+              <h2 className="text-2xl font-bold mb-2">What can I help with?</h2>
+              <p className="text-muted-foreground mb-6">
+                I'm your AI visual tutor. Ask me anything and I'll explain it with images, mind maps, and interactive content.
+              </p>
+            </div>
+            
+            {/* Quick Action Buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
+              <Button 
+                variant="outline" 
+                className="p-6 h-auto text-left space-y-2"
+                onClick={() => setMessage("Explain photosynthesis with an image")}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <ImageIcon className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <div className="font-medium">🖼️ Create an image</div>
+                    <div className="text-sm text-muted-foreground">Visual explanations</div>
+                  </div>
+                </div>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="p-6 h-auto text-left space-y-2"
+                onClick={() => setMessage("Create a mind map of the solar system")}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-chart-3/10 rounded-lg flex items-center justify-center">
+                    <Brain className="w-4 h-4 text-chart-3" />
+                  </div>
+                  <div>
+                    <div className="font-medium">🧠 Make a mind map</div>
+                    <div className="text-sm text-muted-foreground">Organize knowledge</div>
+                  </div>
+                </div>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="p-6 h-auto text-left space-y-2"
+                onClick={() => setMessage("Teach me about quantum physics")}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-chart-2/10 rounded-lg flex items-center justify-center">
+                    <BookOpen className="w-4 h-4 text-chart-2" />
+                  </div>
+                  <div>
+                    <div className="font-medium">📚 Explain a topic</div>
+                    <div className="text-sm text-muted-foreground">Deep dive learning</div>
+                  </div>
+                </div>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="p-6 h-auto text-left space-y-2"
+                onClick={() => {
+                  if (speechSupported) {
+                    toggleVoiceRecording();
+                  }
+                }}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-destructive/10 rounded-lg flex items-center justify-center">
+                    <Mic className="w-4 h-4 text-destructive" />
+                  </div>
+                  <div>
+                    <div className="font-medium">🗣️ Use voice input</div>
+                    <div className="text-sm text-muted-foreground">Talk to learn</div>
+                  </div>
+                </div>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Messages - Only show when there are messages */}
+      {messages.length > 0 && (
+        <ScrollArea ref={scrollAreaRef} className="flex-1 p-6">
+          <div className="space-y-4 max-w-4xl mx-auto">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                <span>Loading messages...</span>
+              </div>
+            ) : (
+              messages.map((msg) => (
               <div
                 key={msg.id}
                 className={`chat-bubble p-4 ${

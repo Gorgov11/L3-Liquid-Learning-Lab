@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Settings, Menu, GraduationCap } from 'lucide-react';
+import { Settings, Menu, GraduationCap, Brain, Eye, Mic, Image } from 'lucide-react';
 import { Sidebar } from '@/components/sidebar';
 import { ChatInterface } from '@/components/chat-interface';
 import { VisualPanel } from '@/components/visual-panel';
@@ -14,6 +14,7 @@ export default function Home() {
   const [dashboardOpen, setDashboardOpen] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<number | null>(null);
   const [currentUserId] = useState('user-1'); // Simplified user management
+  const [showVisualPanel, setShowVisualPanel] = useState(false);
   const queryClient = useQueryClient();
 
   // Get current conversation messages to extract latest visual content
@@ -68,11 +69,18 @@ export default function Home() {
     }
   }, []);
 
+  // Show visual panel when there are visual assets
+  useEffect(() => {
+    if (latestImageMessage || latestMindMapMessage) {
+      setShowVisualPanel(true);
+    }
+  }, [latestImageMessage, latestMindMapMessage]);
+
   return (
     <div className="h-screen bg-background text-foreground overflow-hidden">
-      {/* Header */}
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between relative z-50">
-        <div className="flex items-center space-x-4">
+      {/* Enhanced Header with AI Features */}
+      <header className="bg-card/80 backdrop-blur-sm border-b border-border px-4 sm:px-6 py-3 flex items-center justify-between relative z-50">
+        <div className="flex items-center space-x-3">
           <Button
             variant="ghost"
             size="sm"
@@ -82,28 +90,61 @@ export default function Home() {
             <Menu className="w-5 h-5" />
           </Button>
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-chart-2 rounded-lg flex items-center justify-center">
-              <GraduationCap className="w-4 h-4 text-primary-foreground" />
+            <div className="w-10 h-10 bg-gradient-to-br from-primary via-chart-2 to-chart-3 rounded-xl flex items-center justify-center shadow-lg">
+              <GraduationCap className="w-5 h-5 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
-              Liquid Learning Lab: AI Tutor
-            </h1>
+            <div>
+              <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary via-chart-2 to-chart-3 bg-clip-text text-transparent">
+                Liquid Learning Lab
+              </h1>
+              <p className="text-xs text-muted-foreground hidden sm:block">AI Visual Tutor</p>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="hidden md:flex items-center space-x-2 text-sm text-muted-foreground">
-            <div className="w-2 h-2 bg-green-500 rounded-full pulse-animation" />
-            <span>AI Tutor Online</span>
+        <div className="flex items-center space-x-2">
+          {/* AI Features Indicators */}
+          <div className="hidden sm:flex items-center space-x-4 text-xs">
+            <div className="flex items-center space-x-1 px-2 py-1 bg-primary/10 rounded-full">
+              <Mic className="w-3 h-3 text-primary" />
+              <span className="text-primary font-medium">Voice</span>
+            </div>
+            <div className="flex items-center space-x-1 px-2 py-1 bg-chart-2/10 rounded-full">
+              <Image className="w-3 h-3 text-chart-2" />
+              <span className="text-chart-2 font-medium">Images</span>
+            </div>
+            <div className="flex items-center space-x-1 px-2 py-1 bg-chart-3/10 rounded-full">
+              <Brain className="w-3 h-3 text-chart-3" />
+              <span className="text-chart-3 font-medium">Mind Maps</span>
+            </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setDashboardOpen(true)}
-          >
-            <Settings className="w-4 h-4" />
-            <span className="ml-2 hidden sm:inline">Settings</span>
-          </Button>
+          
+          <div className="flex items-center space-x-2">
+            <div className="hidden md:flex items-center space-x-2 text-sm text-muted-foreground">
+              <div className="w-2 h-2 bg-green-500 rounded-full pulse-animation" />
+              <span>AI Online</span>
+            </div>
+            
+            {/* Visual Panel Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowVisualPanel(!showVisualPanel)}
+              className={showVisualPanel ? 'bg-primary/10 text-primary' : ''}
+            >
+              <Eye className="w-4 h-4" />
+              <span className="ml-2 hidden sm:inline">Visuals</span>
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDashboardOpen(true)}
+            >
+              <Settings className="w-4 h-4" />
+              <span className="ml-2 hidden sm:inline">Dashboard</span>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -118,21 +159,28 @@ export default function Home() {
           currentUserId={currentUserId}
         />
 
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col lg:flex-row min-w-0">
-          {/* Chat Interface */}
-          <div className="flex-1 flex flex-col min-w-0">
+        {/* Main Content - ChatGPT-like Layout */}
+        <div className="flex-1 flex min-w-0">
+          {/* Chat Interface - Full width when visual panel hidden */}
+          <div className={`flex flex-col min-w-0 transition-all duration-300 ${
+            showVisualPanel ? 'flex-1' : 'w-full'
+          }`}>
             <ChatInterface
               conversationId={currentConversationId}
               currentUserId={currentUserId}
             />
           </div>
 
-          {/* Visual Panel */}
-          <VisualPanel
-            currentImage={latestImageMessage?.imageUrl}
-            currentMindMap={latestMindMapMessage?.mindMapData}
-          />
+          {/* Collapsible Visual Panel */}
+          {showVisualPanel && (
+            <div className="w-96 border-l border-border bg-card/50 backdrop-blur-sm transition-all duration-300">
+              <VisualPanel
+                currentImage={latestImageMessage?.imageUrl}
+                currentMindMap={latestMindMapMessage?.mindMapData}
+                onClose={() => setShowVisualPanel(false)}
+              />
+            </div>
+          )}
         </div>
       </div>
 

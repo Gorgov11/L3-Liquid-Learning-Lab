@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Eye, Image, Map, Bookmark, Share2, Loader2 } from 'lucide-react';
+import { Eye, Image, Map, Bookmark, Share2, Loader2, X } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { MindMapData } from '@/lib/types';
@@ -9,9 +9,10 @@ import { MindMapData } from '@/lib/types';
 interface VisualPanelProps {
   currentImage?: string | null;
   currentMindMap?: MindMapData | null;
+  onClose?: () => void;
 }
 
-export function VisualPanel({ currentImage, currentMindMap }: VisualPanelProps) {
+export function VisualPanel({ currentImage, currentMindMap, onClose }: VisualPanelProps) {
   const [customImagePrompt, setCustomImagePrompt] = useState('');
   const [customMindMapTopic, setCustomMindMapTopic] = useState('');
 
@@ -47,10 +48,17 @@ export function VisualPanel({ currentImage, currentMindMap }: VisualPanelProps) 
     <aside className="w-full lg:w-96 bg-card border-l border-border flex flex-col">
       {/* Header */}
       <div className="border-b border-border px-6 py-4">
-        <h3 className="font-semibold flex items-center space-x-2">
-          <Eye className="w-4 h-4 text-primary" />
-          <span>Visual Learning</span>
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold flex items-center space-x-2">
+            <Eye className="w-4 h-4 text-primary" />
+            <span>Visual Learning</span>
+          </h3>
+          {onClose && (
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       <ScrollArea className="flex-1 p-6">
