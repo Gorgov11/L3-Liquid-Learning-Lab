@@ -87,8 +87,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let imageUrl = null;
       let mindMapData = null;
 
-      // Generate image if requested
-      if (generateImage) {
+      // ALWAYS generate visuals for educational content (automatic generation)
+      const shouldGenerateVisuals = aiContent.length > 50; // Generate for substantial responses
+
+      // Generate image automatically for educational responses
+      if (shouldGenerateVisuals) {
         try {
           const imagePrompt = `Educational diagram or illustration for: ${content}. Make it clear, informative, and suitable for learning.`;
           const imageResponse = await openai.images.generate({
@@ -98,14 +101,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             size: "1024x1024",
             quality: "standard",
           });
-          imageUrl = imageResponse.data[0].url;
+          imageUrl = imageResponse.data?.[0]?.url || null;
         } catch (error) {
           console.error("Image generation failed:", error);
         }
       }
 
-      // Generate mind map if requested
-      if (generateMindMap) {
+      // Generate mind map automatically for educational responses
+      if (shouldGenerateVisuals) {
         try {
           const mindMapPrompt = `Create a structured mind map for the topic: ${content}. 
           Respond with JSON in this format: {
@@ -139,13 +142,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mindMapData,
       });
 
-      // Update learning progress
+      // Update learning progress  
       const topic = content.substring(0, 100); // Use first 100 chars as topic
       await storage.createOrUpdateLearningProgress({
         userId: conversation.userId,
         topic,
         progressPercentage: Math.min(100, 10), // Small increment per interaction
-        visualsGenerated: (generateImage ? 1 : 0) + (generateMindMap ? 1 : 0),
+        visualsGenerated: (shouldGenerateVisuals ? 2 : 0), // Both image and mindmap when auto-generated
       });
 
       // Update conversation timestamp
@@ -155,6 +158,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Message processing failed:", error);
       res.status(500).json({ message: "Failed to process message" });
+    }
+  });
+
+  // Generate high-quality AI voice for text
+  app.post("/api/text-to-speech", async (req, res) => {
+    try {
+      const { text } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ message: "Text is required" });
+      }
+
+      const mp3 = await openai.audio.speech.create({
+        model: "tts-1-hd", // High quality model
+        voice: "nova", // Natural, engaging voice
+        input: text,
+        speed: 1.0,
+      });
+
+      const buffer = Buffer.from(await mp3.arrayBuffer());
+      
+      res.set({
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': buffer.length,
+      });
+      
+      res.send(buffer);
+    } catch (error) {
+      console.error("Text-to-speech generation failed:", error);
+      res.status(500).json({ message: "Failed to generate speech" });
     }
   });
 

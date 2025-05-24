@@ -13,78 +13,76 @@ interface UseTextToSpeechReturn {
 export function useTextToSpeech(): UseTextToSpeechReturn {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const isSupported = 'speechSynthesis' in window;
+  const isSupported = true; // AI voice is always supported
 
-  const speak = useCallback((text: string) => {
-    if (!isSupported) {
-      setError('Text-to-speech is not supported in this browser');
-      return;
-    }
+  const speak = useCallback(async (text: string) => {
+    try {
+      // Stop any current audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
 
-    if (speechSynthesis.speaking) {
-      speechSynthesis.cancel();
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utteranceRef.current = utterance;
-
-    utterance.onstart = () => {
       setIsSpeaking(true);
       setError(null);
-    };
 
-    utterance.onend = () => {
-      setIsSpeaking(false);
-    };
+      // Generate high-quality AI voice using OpenAI API
+      const response = await fetch('/api/text-to-speech', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text }),
+      });
 
-    utterance.onerror = (event) => {
-      setError(`Speech synthesis error: ${event.error}`);
-      setIsSpeaking(false);
-    };
+      if (!response.ok) {
+        throw new Error('Failed to generate speech');
+      }
 
-    // Set voice properties
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-    utterance.volume = 0.8;
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      
+      audio.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+      };
+      
+      audio.onerror = () => {
+        setIsSpeaking(false);
+        setError('Failed to play AI voice');
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+      };
 
-    // Try to use a natural-sounding voice
-    const voices = speechSynthesis.getVoices();
-    const naturalVoice = voices.find(voice => 
-      voice.name.includes('Google') || 
-      voice.name.includes('Microsoft') ||
-      voice.name.includes('Natural')
-    );
-    
-    if (naturalVoice) {
-      utterance.voice = naturalVoice;
-    }
-
-    try {
-      speechSynthesis.speak(utterance);
+      audioRef.current = audio;
+      await audio.play();
     } catch (err) {
-      setError('Failed to start text-to-speech');
+      setError(`AI voice generation failed: ${err}`);
       setIsSpeaking(false);
     }
-  }, [isSupported]);
+  }, []);
 
   const stop = useCallback(() => {
-    if (speechSynthesis.speaking) {
-      speechSynthesis.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
       setIsSpeaking(false);
     }
   }, []);
 
   const pause = useCallback(() => {
-    if (speechSynthesis.speaking && !speechSynthesis.paused) {
-      speechSynthesis.pause();
+    if (audioRef.current && !audioRef.current.paused) {
+      audioRef.current.pause();
     }
   }, []);
 
   const resume = useCallback(() => {
-    if (speechSynthesis.paused) {
-      speechSynthesis.resume();
+    if (audioRef.current && audioRef.current.paused) {
+      audioRef.current.play();
     }
   }, []);
 
