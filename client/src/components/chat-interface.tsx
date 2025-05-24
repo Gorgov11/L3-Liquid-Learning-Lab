@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Mic, MicOff, Send, Bot, User, Loader2, Brain, BookOpen, ImageIcon } from 'lucide-react';
+import { Mic, MicOff, Send, Bot, User, Loader2, Brain, BookOpen, ImageIcon, Volume2, VolumeX, Tag, Sparkles } from 'lucide-react';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { useTextToSpeech } from '@/hooks/use-text-to-speech';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -20,6 +20,13 @@ export function ChatInterface({ conversationId, currentUserId }: ChatInterfacePr
   const [isGeneratingMindMap, setIsGeneratingMindMap] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  
+  // Feature toggle states
+  const [autoVoiceEnabled, setAutoVoiceEnabled] = useState(true);
+  const [autoImageEnabled, setAutoImageEnabled] = useState(true);
+  const [autoMindMapEnabled, setAutoMindMapEnabled] = useState(true);
+  const [addEmojisEnabled, setAddEmojisEnabled] = useState(true);
+  const [learningCategory, setLearningCategory] = useState('general');
 
   const {
     isSupported: speechSupported,
@@ -64,8 +71,8 @@ export function ChatInterface({ conversationId, currentUserId }: ChatInterfacePr
       queryClient.invalidateQueries({ queryKey: [`/api/conversations/${conversationId}/messages`] });
       queryClient.invalidateQueries({ queryKey: [`/api/conversations/${currentUserId}`] });
       
-      // Speak the AI response
-      if (data.aiMessage?.content) {
+      // Auto-speak AI response if enabled
+      if (autoVoiceEnabled && data.aiMessage?.content) {
         speak(data.aiMessage.content);
       }
     },
@@ -92,15 +99,15 @@ export function ChatInterface({ conversationId, currentUserId }: ChatInterfacePr
     setMessage('');
     resetTranscript();
 
-    // Always generate visuals automatically for educational content
-    setIsGeneratingImage(true);
-    setIsGeneratingMindMap(true);
+    // Generate visuals based on user preferences
+    if (autoImageEnabled) setIsGeneratingImage(true);
+    if (autoMindMapEnabled) setIsGeneratingMindMap(true);
 
     try {
       await sendMessageMutation.mutateAsync({
         content: messageContent,
-        generateImage: true, // Always generate image
-        generateMindMap: true, // Always generate mind map
+        generateImage: autoImageEnabled,
+        generateMindMap: autoMindMapEnabled,
       });
     } finally {
       setIsGeneratingImage(false);
@@ -141,6 +148,77 @@ Try asking me to:
 
   return (
     <div className="flex flex-col h-full bg-background">
+      {/* Feature Control Panel */}
+      <div className="bg-card border-b border-border p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-wrap items-center gap-3">
+            <h3 className="text-sm font-medium text-muted-foreground mr-2">Learning Features:</h3>
+            
+            {/* Voice Toggle */}
+            <Button
+              variant={autoVoiceEnabled ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAutoVoiceEnabled(!autoVoiceEnabled)}
+              className="h-8 px-3 text-xs"
+            >
+              {autoVoiceEnabled ? <Volume2 className="w-3 h-3 mr-1" /> : <VolumeX className="w-3 h-3 mr-1" />}
+              🗣️ Auto Voice
+            </Button>
+
+            {/* Image Toggle */}
+            <Button
+              variant={autoImageEnabled ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAutoImageEnabled(!autoImageEnabled)}
+              className="h-8 px-3 text-xs"
+            >
+              <ImageIcon className="w-3 h-3 mr-1" />
+              🖼️ Auto Images
+            </Button>
+
+            {/* Mind Map Toggle */}
+            <Button
+              variant={autoMindMapEnabled ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAutoMindMapEnabled(!autoMindMapEnabled)}
+              className="h-8 px-3 text-xs"
+            >
+              <Brain className="w-3 h-3 mr-1" />
+              🧠 Mind Maps
+            </Button>
+
+            {/* Emoji Toggle */}
+            <Button
+              variant={addEmojisEnabled ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAddEmojisEnabled(!addEmojisEnabled)}
+              className="h-8 px-3 text-xs"
+            >
+              <Sparkles className="w-3 h-3 mr-1" />
+              😊 Add Emojis
+            </Button>
+
+            {/* Learning Category */}
+            <div className="flex items-center gap-2 ml-auto">
+              <Tag className="w-3 h-3 text-muted-foreground" />
+              <select 
+                value={learningCategory}
+                onChange={(e) => setLearningCategory(e.target.value)}
+                className="text-xs bg-background border border-border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="general">📚 General</option>
+                <option value="science">🔬 Science</option>
+                <option value="math">📐 Mathematics</option>
+                <option value="history">🏛️ History</option>
+                <option value="language">🗣️ Language</option>
+                <option value="programming">💻 Programming</option>
+                <option value="art">🎨 Art & Design</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Minimal Chat Header - ChatGPT style */}
       {conversationId && messages.length === 0 && (
         <div className="flex-1 flex items-center justify-center px-6">
