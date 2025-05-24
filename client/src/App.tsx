@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
+import InvestorPresentation from './pages/investor-presentation';
 import StudyMaterials from "@/pages/study-materials";
 import LearningPath from "@/pages/learning-path";
 import Schedule from "@/pages/schedule";
@@ -13,12 +14,19 @@ import Groups from "@/pages/groups";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/">
+        <Home />
+      </Route>
+      <Route path="/investor-presentation">
+        <InvestorPresentation />
+      </Route>
       <Route path="/study-materials" component={StudyMaterials} />
       <Route path="/learning-path" component={LearningPath} />
       <Route path="/schedule" component={Schedule} />
       <Route path="/groups" component={Groups} />
-      <Route component={NotFound} />
+      <Route>
+        <NotFound />
+      </Route>
     </Switch>
   );
 }
