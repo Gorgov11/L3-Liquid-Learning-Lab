@@ -273,69 +273,6 @@ export function Sidebar({
                 </Link>
               </div>
               
-              {/* Language Selector */}
-              <div className="space-y-1">
-                <div className="text-xs font-semibold text-muted-foreground px-2 mb-2">SETTINGS</div>
-                <LanguageSelector />
-              </div>
-
-              {/* Learning Interests */}
-              <div className="space-y-1">
-                <div className="text-xs font-semibold text-muted-foreground px-2 mb-2 flex items-center gap-2">
-                  <Star className="w-3 h-3 text-primary" />
-                  INTERESTS
-                </div>
-                
-                <div className="space-y-2 mb-3">
-                  <div className="flex flex-wrap gap-1">
-                    {interests.map((interest) => (
-                      <Badge
-                        key={interest.id}
-                        variant="secondary"
-                        className="text-xs bg-primary/20 text-primary border-primary/30 group cursor-pointer"
-                        onClick={() => handleDeleteInterest(interest.id)}
-                      >
-                        {interest.interest}
-                        <X className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                
-                <Input
-                  type="text"
-                  placeholder="Add new interest..."
-                  value={newInterest}
-                  onChange={(e) => setNewInterest(e.target.value)}
-                  onKeyDown={handleAddInterest}
-                  className="text-sm h-8 mb-4"
-                />
-              </div>
-
-              {/* Learning Suggestions */}
-              {showSuggestions && (
-                <div className="space-y-1">
-                  <div className="text-xs font-semibold text-muted-foreground px-2 mb-2">AI SUGGESTIONS</div>
-                  
-                  <div className="space-y-2">
-                    <div className="p-2 rounded-lg bg-chart-1/10 border border-chart-1/20">
-                      <h4 className="text-xs font-medium text-chart-1 mb-1">Science</h4>
-                      <p className="text-xs text-muted-foreground">Explore quantum physics fundamentals</p>
-                    </div>
-                    
-                    <div className="p-2 rounded-lg bg-chart-2/10 border border-chart-2/20">
-                      <h4 className="text-xs font-medium text-chart-2 mb-1">Mathematics</h4>
-                      <p className="text-xs text-muted-foreground">Practice calculus problem solving</p>
-                    </div>
-                    
-                    <div className="p-2 rounded-lg bg-chart-3/10 border border-chart-3/20">
-                      <h4 className="text-xs font-medium text-chart-3 mb-1">History</h4>
-                      <p className="text-xs text-muted-foreground">Learn about ancient civilizations</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* Conversations */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between px-2 mb-2">
@@ -403,6 +340,69 @@ export function Sidebar({
                   </div>
                 )}
               </div>
+
+              {/* Language Selector */}
+              <div className="space-y-1">
+                <div className="text-xs font-semibold text-muted-foreground px-2 mb-2">SETTINGS</div>
+                <LanguageSelector />
+              </div>
+
+              {/* Learning Interests */}
+              <div className="space-y-1">
+                <div className="text-xs font-semibold text-muted-foreground px-2 mb-2 flex items-center gap-2">
+                  <Star className="w-3 h-3 text-primary" />
+                  INTERESTS
+                </div>
+                
+                <div className="space-y-2 mb-3">
+                  <div className="flex flex-wrap gap-1">
+                    {interests.map((interest) => (
+                      <Badge
+                        key={interest.id}
+                        variant="secondary"
+                        className="text-xs bg-primary/20 text-primary border-primary/30 group cursor-pointer"
+                        onClick={() => handleDeleteInterest(interest.id)}
+                      >
+                        {interest.interest}
+                        <X className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <Input
+                  type="text"
+                  placeholder="Add new interest..."
+                  value={newInterest}
+                  onChange={(e) => setNewInterest(e.target.value)}
+                  onKeyDown={handleAddInterest}
+                  className="text-sm h-8 mb-4"
+                />
+              </div>
+
+              {/* Learning Suggestions */}
+              {showSuggestions && (
+                <div className="space-y-1">
+                  <div className="text-xs font-semibold text-muted-foreground px-2 mb-2">AI SUGGESTIONS</div>
+                  
+                  <div className="space-y-2">
+                    <div className="p-2 rounded-lg bg-chart-1/10 border border-chart-1/20">
+                      <h4 className="text-xs font-medium text-chart-1 mb-1">Science</h4>
+                      <p className="text-xs text-muted-foreground">Explore quantum physics fundamentals</p>
+                    </div>
+                    
+                    <div className="p-2 rounded-lg bg-chart-2/10 border border-chart-2/20">
+                      <h4 className="text-xs font-medium text-chart-2 mb-1">Mathematics</h4>
+                      <p className="text-xs text-muted-foreground">Practice calculus problem solving</p>
+                    </div>
+                    
+                    <div className="p-2 rounded-lg bg-chart-3/10 border border-chart-3/20">
+                      <h4 className="text-xs font-medium text-chart-3 mb-1">History</h4>
+                      <p className="text-xs text-muted-foreground">Learn about ancient civilizations</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </ScrollArea>
         </div>
