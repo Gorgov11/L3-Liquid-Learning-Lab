@@ -102,6 +102,48 @@ export class DatabaseStorage implements IStorage {
     return conversation || undefined;
   }
 
+  async deleteConversation(id: number): Promise<boolean> {
+    try {
+      // First delete all messages in the conversation
+      await db.delete(messages).where(eq(messages.conversationId, id));
+      
+      // Then delete the conversation
+      await db.delete(conversations).where(eq(conversations.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error("Failed to delete conversation:", error);
+      return false;
+    }
+  }
+
+  async clearAllConversations(userId: string): Promise<boolean> {
+    try {
+      // Get all conversation IDs for the user
+      const userConversations = await db
+        .select({ id: conversations.id })
+        .from(conversations)
+        .where(eq(conversations.userId, userId));
+      
+      const conversationIds = userConversations.map(conv => conv.id);
+      
+      if (conversationIds.length > 0) {
+        // Delete all messages for these conversations
+        for (const convId of conversationIds) {
+          await db.delete(messages).where(eq(messages.conversationId, convId));
+        }
+        
+        // Delete all conversations for the user
+        await db.delete(conversations).where(eq(conversations.userId, userId));
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Failed to clear all conversations:", error);
+      return false;
+    }
+  }
+
   async getMessagesByConversationId(conversationId: number): Promise<Message[]> {
     return await db.select().from(messages).where(eq(messages.conversationId, conversationId));
   }
