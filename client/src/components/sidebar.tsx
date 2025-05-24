@@ -164,9 +164,6 @@ export function Sidebar({
                 <div className="w-6 h-6 bg-gradient-to-br from-primary to-chart-2 rounded-lg flex items-center justify-center">
                   <GraduationCap className="w-3 h-3 text-primary-foreground" />
                 </div>
-                <span className="text-lg font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
-                  Liquid Learning
-                </span>
               </div>
               <Button
                 variant="ghost"
