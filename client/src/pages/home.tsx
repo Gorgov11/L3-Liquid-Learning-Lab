@@ -4,7 +4,7 @@ import { Settings, Menu, GraduationCap, Brain, Eye, Mic, Image } from 'lucide-re
 import { Sidebar } from '@/components/sidebar';
 import { ChatInterface } from '@/components/chat-interface';
 import { VisualPanel } from '@/components/visual-panel';
-import { DashboardModal } from '@/components/dashboard-modal';
+import { DashboardModal } from '@/components/dashboard-modal-new';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { ChatMessage, ConversationData } from '@/lib/types';

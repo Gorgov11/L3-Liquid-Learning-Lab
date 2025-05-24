@@ -1,9 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Progress } from '@/components/ui/progress';
-import { BarChart3, X, BookOpen, Palette, TrendingUp } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { UserStats, LearningProgressData } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
+import { LearningDashboard } from './learning-dashboard';
 
 interface DashboardModalProps {
   isOpen: boolean;
