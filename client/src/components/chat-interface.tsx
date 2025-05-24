@@ -244,12 +244,12 @@ Try asking me to:
               </div>
             ) : (
               messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`chat-bubble p-4 ${
-                  msg.role === 'user' ? 'user-bubble' : 'ai-bubble'
-                }`}
-              >
+                <div
+                  key={msg.id}
+                  className={`chat-bubble p-4 ${
+                    msg.role === 'user' ? 'user-bubble' : 'ai-bubble'
+                  }`}
+                >
                 <div className="flex items-start space-x-3">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 ${
                     msg.role === 'user' 
@@ -307,76 +307,88 @@ Try asking me to:
               Creating mind map...
             </div>
           )}
-        </div>
-      </ScrollArea>
+          </div>
+        </ScrollArea>
+      )}
 
-      {/* Input Area */}
-      <div className="bg-card border-t border-border p-6">
-        <div className="flex items-center space-x-4">
-          {speechSupported && (
-            <Button
-              size="lg"
-              className={`flex-shrink-0 w-12 h-12 rounded-full ${
-                isListening 
-                  ? 'bg-destructive hover:bg-destructive voice-recording' 
-                  : 'bg-gradient-to-br from-primary to-chart-2 hover:opacity-90'
-              }`}
-              onClick={toggleVoiceRecording}
-            >
-              {isListening ? (
-                <MicOff className="w-5 h-5" />
-              ) : (
-                <Mic className="w-5 h-5" />
-              )}
-            </Button>
-          )}
+      {/* Input Area - ChatGPT Style - Fixed positioning */}
+      <div className="bg-background border-t border-border p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center space-x-3 bg-card rounded-2xl p-3 border border-border">
+            {/* Voice Button */}
+            {speechSupported && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className={`flex-shrink-0 w-10 h-10 rounded-full ${
+                  isListening 
+                    ? 'bg-destructive text-destructive-foreground voice-recording' 
+                    : 'hover:bg-muted'
+                }`}
+                onClick={toggleVoiceRecording}
+              >
+                {isListening ? (
+                  <MicOff className="w-4 h-4" />
+                ) : (
+                  <Mic className="w-4 h-4" />
+                )}
+              </Button>
+            )}
 
-          <div className="flex-1 relative">
-            <Input
-              type="text"
-              placeholder="Type your question or use voice input..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyPress}
-              className="pr-12"
-              disabled={sendMessageMutation.isPending}
-            />
+            {/* Message Input */}
+            <div className="flex-1 relative">
+              <Input
+                type="text"
+                placeholder="Message Liquid Learning Lab..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={handleKeyPress}
+                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground"
+                disabled={sendMessageMutation.isPending}
+              />
+            </div>
+
+            {/* Send Button */}
             <Button
               size="sm"
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 p-0"
+              className="flex-shrink-0 w-10 h-10 rounded-full bg-primary hover:bg-primary/90"
               onClick={handleSendMessage}
               disabled={!message.trim() || !conversationId || sendMessageMutation.isPending}
             >
-              <Send className="w-4 h-4" />
+              {sendMessageMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
             </Button>
           </div>
+
+          {/* Voice feedback */}
+          {isListening && (
+            <div className="mt-3 flex items-center justify-center space-x-2 text-destructive text-sm">
+              <div className="w-2 h-2 bg-destructive rounded-full pulse-animation" />
+              <span>Listening... speak your question</span>
+            </div>
+          )}
+
+          {speechError && (
+            <div className="mt-2 text-center text-sm text-destructive">
+              {speechError}
+            </div>
+          )}
+
+          {isSpeaking && (
+            <div className="mt-2 flex items-center justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={stopSpeaking}
+              >
+                Stop Speaking
+              </Button>
+            </div>
+          )}
         </div>
-
-        {/* Voice feedback */}
-        {isListening && (
-          <div className="mt-3 flex items-center space-x-2 text-destructive text-sm">
-            <div className="w-3 h-3 bg-destructive rounded-full pulse-animation" />
-            <span>Recording... <span className="loading-dots"></span></span>
-          </div>
-        )}
-
-        {speechError && (
-          <div className="mt-2 text-sm text-destructive">
-            {speechError}
-          </div>
-        )}
-
-        {isSpeaking && (
-          <div className="mt-2 flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={stopSpeaking}
-            >
-              Stop Speaking
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );
