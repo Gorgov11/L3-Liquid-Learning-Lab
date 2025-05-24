@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Edit3, Trash2, Save, X, Brain, Sparkles, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Plus, Edit3, Trash2, Save, X, Brain, Sparkles, ZoomIn, ZoomOut, RotateCcw, Download, Share2, Maximize, Move, Eye, EyeOff, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { MindMapData } from '@/lib/types';
 
 interface InteractiveMindMapProps {
@@ -19,6 +20,10 @@ interface Node {
   isMainTopic?: boolean;
   children: string[];
   color: string;
+  isDragging?: boolean;
+  isVisible?: boolean;
+  size?: 'small' | 'medium' | 'large';
+  connections?: number;
 }
 
 export function InteractiveMindMap({ data, onUpdate, className = "" }: InteractiveMindMapProps) {
@@ -29,12 +34,67 @@ export function InteractiveMindMap({ data, onUpdate, className = "" }: Interacti
   const [editText, setEditText] = useState('');
   const [nodes, setNodes] = useState<Node[]>([]);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [draggedNode, setDraggedNode] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [showConnections, setShowConnections] = useState(true);
+  const [viewMode, setViewMode] = useState<'radial' | 'hierarchical' | 'organic'>('radial');
+  const [selectedNodes, setSelectedNodes] = useState<Set<string>>(new Set());
 
-  // Color palette for mind map nodes
+  // Enhanced color palette for mind map nodes
   const colors = [
-    '#6366f1', '#8b5cf6', '#06b6d4', '#10b981', 
-    '#f59e0b', '#ef4444', '#ec4899', '#14b8a6'
+    '#3B82F6', '#8B5CF6', '#06B6D4', '#10B981', 
+    '#F59E0B', '#EF4444', '#EC4899', '#14B8A6',
+    '#6366F1', '#8B5CF6', '#F97316', '#84CC16'
   ];
+
+  // Mouse event handlers for drag and drop
+  const handleMouseDown = useCallback((e: React.MouseEvent, nodeId: string) => {
+    e.preventDefault();
+    setDraggedNode(nodeId);
+    setIsDragging(true);
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging || !draggedNode) return;
+    
+    const rect = svgRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const x = (e.clientX - rect.left) / zoom + pan.x;
+    const y = (e.clientY - rect.top) / zoom + pan.y;
+
+    setNodes(prev => prev.map(node => 
+      node.id === draggedNode 
+        ? { ...node, x, y, isDragging: true }
+        : node
+    ));
+  }, [isDragging, draggedNode, zoom, pan]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    setDraggedNode(null);
+    setNodes(prev => prev.map(node => ({ ...node, isDragging: false })));
+  }, []);
+
+  // Export functionality
+  const exportMindMap = useCallback((format: 'png' | 'svg' | 'json') => {
+    if (format === 'json') {
+      const exportData = {
+        data,
+        nodes,
+        zoom,
+        pan,
+        timestamp: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `mindmap-${data.centralTopic.replace(/\s+/g, '-')}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  }, [data, nodes, zoom, pan]);
 
   // Initialize nodes from mind map data
   useEffect(() => {
@@ -181,13 +241,44 @@ export function InteractiveMindMap({ data, onUpdate, className = "" }: Interacti
           <Sparkles className="w-4 h-4 text-blue-500 animate-pulse" />
         </div>
         
-        {/* Controls */}
+        {/* Enhanced Controls */}
         <div className="flex items-center space-x-2">
+          {/* View Mode Toggle */}
+          <div className="flex items-center space-x-1 mr-2">
+            <Badge variant="outline" className="text-xs">
+              {viewMode.charAt(0).toUpperCase() + viewMode.slice(1)}
+            </Badge>
+          </div>
+          
+          {/* Connection Toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowConnections(!showConnections)}
+            className={`h-8 w-8 p-0 svg-animate ${showConnections ? 'bg-primary/10' : ''}`}
+            title="Toggle connections"
+          >
+            {showConnections ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+          </Button>
+          
+          {/* Export Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportMindMap('json')}
+            className="h-8 w-8 p-0 svg-animate"
+            title="Export mind map"
+          >
+            <Download className="w-4 h-4 svg-bounce" />
+          </Button>
+          
+          {/* Zoom Controls */}
           <Button
             variant="outline"
             size="sm"
             onClick={() => setZoom(prev => Math.min(prev + 0.2, 2))}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 svg-animate"
+            title="Zoom in"
           >
             <ZoomIn className="w-4 h-4" />
           </Button>
@@ -195,7 +286,8 @@ export function InteractiveMindMap({ data, onUpdate, className = "" }: Interacti
             variant="outline"
             size="sm"
             onClick={() => setZoom(prev => Math.max(prev - 0.2, 0.5))}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 svg-animate"
+            title="Zoom out"
           >
             <ZoomOut className="w-4 h-4" />
           </Button>
@@ -203,45 +295,110 @@ export function InteractiveMindMap({ data, onUpdate, className = "" }: Interacti
             variant="outline"
             size="sm"
             onClick={resetZoom}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 svg-animate"
+            title="Reset view"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-4 h-4 svg-spin-glow" />
+          </Button>
+          
+          {/* Fullscreen Toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 w-8 p-0 svg-animate"
+            title="Expand view"
+          >
+            <Maximize className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
-      {/* Mind Map SVG */}
-      <div className="relative bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+      {/* Enhanced Mind Map SVG */}
+      <div className="relative bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/50 dark:from-gray-900 dark:via-blue-950/20 dark:to-indigo-950/20 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-inner">
         <svg
           ref={svgRef}
           width="100%"
-          height="500"
-          viewBox={`${-pan.x} ${-pan.y} ${800 / zoom} ${500 / zoom}`}
-          className="cursor-grab active:cursor-grabbing"
+          height="600"
+          viewBox={`${-pan.x} ${-pan.y} ${800 / zoom} ${600 / zoom}`}
+          className={`transition-all duration-300 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
         >
-          {/* Connections */}
-          <g>
-            {nodes.map(node => 
-              node.children.map(childId => {
-                const child = nodes.find(n => n.id === childId);
-                if (!child) return null;
-                
-                return (
-                  <line
-                    key={`${node.id}-${childId}`}
-                    x1={node.x}
-                    y1={node.y}
-                    x2={child.x}
-                    y2={child.y}
-                    stroke={node.color}
-                    strokeWidth="2"
-                    opacity="0.6"
-                    className="animate-pulse"
-                  />
-                );
-              })
-            )}
-          </g>
+          {/* Gradient Definitions */}
+          <defs>
+            <radialGradient id="nodeGradient" cx="50%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8"/>
+              <stop offset="100%" stopColor="#000000" stopOpacity="0.1"/>
+            </radialGradient>
+            <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="2" dy="4" stdDeviation="3" floodOpacity="0.3"/>
+            </filter>
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge> 
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          {/* Enhanced Connections */}
+          {showConnections && (
+            <g className="connections-layer">
+              {nodes.map(node => 
+                node.children.map(childId => {
+                  const child = nodes.find(n => n.id === childId);
+                  if (!child) return null;
+                  
+                  return (
+                    <g key={`connection-${node.id}-${childId}`}>
+                      {/* Connection line with gradient */}
+                      <line
+                        x1={node.x}
+                        y1={node.y}
+                        x2={child.x}
+                        y2={child.y}
+                        stroke={`url(#gradient-${node.id})`}
+                        strokeWidth="3"
+                        opacity="0.7"
+                        className="transition-all duration-500 hover:opacity-100"
+                        filter="url(#dropShadow)"
+                      />
+                      {/* Animated connection pulse */}
+                      <line
+                        x1={node.x}
+                        y1={node.y}
+                        x2={child.x}
+                        y2={child.y}
+                        stroke={node.color}
+                        strokeWidth="1"
+                        opacity="0.4"
+                        className="animate-pulse"
+                        strokeDasharray="5,5"
+                      >
+                        <animate
+                          attributeName="stroke-dashoffset"
+                          values="0;10"
+                          dur="2s"
+                          repeatCount="indefinite"
+                        />
+                      </line>
+                    </g>
+                  );
+                })
+              )}
+              
+              {/* Dynamic gradients for connections */}
+              <defs>
+                {nodes.map(node => (
+                  <linearGradient key={`gradient-${node.id}`} id={`gradient-${node.id}`}>
+                    <stop offset="0%" stopColor={node.color} stopOpacity="0.8"/>
+                    <stop offset="100%" stopColor={node.color} stopOpacity="0.3"/>
+                  </linearGradient>
+                ))}
+              </defs>
+            </g>
+          )}
 
           {/* Nodes */}
           <g>
