@@ -496,6 +496,21 @@ Try asking me to:
           </div>
         </div>
       </div>
+
+      {/* Dynamic Voice Control Panel */}
+      <VoiceControlPanel
+        isVisible={isSpeaking || isPaused}
+        isSpeaking={isSpeaking}
+        isPaused={isPaused}
+        currentTime={currentTime}
+        duration={duration}
+        volume={volume}
+        onPlay={resumeSpeaking}
+        onPause={pauseSpeaking}
+        onStop={stopSpeaking}
+        onVolumeChange={setVolume}
+        onSeek={seekTo}
+      />
     </div>
   );
 }
