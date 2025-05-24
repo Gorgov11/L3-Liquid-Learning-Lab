@@ -427,9 +427,15 @@ Try asking me to:
                     variant={autoVoiceEnabled ? "default" : "outline"}
                     size="sm"
                     onClick={() => setAutoVoiceEnabled(!autoVoiceEnabled)}
-                    className="h-8 w-8 p-0 rounded-full"
+                    className={`h-8 w-8 p-0 rounded-full feature-button icon-hover transition-all duration-300 ${
+                      autoVoiceEnabled ? 'animate-pulse-glow' : ''
+                    }`}
                   >
-                    {autoVoiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                    {autoVoiceEnabled ? (
+                      <Volume2 className="w-4 h-4 svg-animate" />
+                    ) : (
+                      <VolumeX className="w-4 h-4 svg-animate opacity-60" />
+                    )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -448,9 +454,11 @@ Try asking me to:
                     variant={autoImageEnabled ? "default" : "outline"}
                     size="sm"
                     onClick={() => setAutoImageEnabled(!autoImageEnabled)}
-                    className="h-8 w-8 p-0 rounded-full"
+                    className={`h-8 w-8 p-0 rounded-full feature-button icon-hover transition-all duration-300 ${
+                      autoImageEnabled ? 'animate-float' : ''
+                    }`}
                   >
-                    <ImageIcon className="w-4 h-4" />
+                    <ImageIcon className={`w-4 h-4 svg-animate ${autoImageEnabled ? '' : 'opacity-60'}`} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -469,9 +477,11 @@ Try asking me to:
                     variant={autoMindMapEnabled ? "default" : "outline"}
                     size="sm"
                     onClick={() => setAutoMindMapEnabled(!autoMindMapEnabled)}
-                    className="h-8 w-8 p-0 rounded-full"
+                    className={`h-8 w-8 p-0 rounded-full feature-button icon-hover transition-all duration-300 ${
+                      autoMindMapEnabled ? 'animate-rotate-pulse' : ''
+                    }`}
                   >
-                    <Brain className="w-4 h-4" />
+                    <Brain className={`w-4 h-4 svg-animate ${autoMindMapEnabled ? '' : 'opacity-60'}`} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -490,9 +500,11 @@ Try asking me to:
                     variant={addEmojisEnabled ? "default" : "outline"}
                     size="sm"
                     onClick={() => setAddEmojisEnabled(!addEmojisEnabled)}
-                    className="h-8 w-8 p-0 rounded-full"
+                    className={`h-8 w-8 p-0 rounded-full feature-button icon-hover transition-all duration-300 ripple ${
+                      addEmojisEnabled ? 'animate-bounce-in' : ''
+                    }`}
                   >
-                    <Sparkles className="w-4 h-4" />
+                    <Sparkles className={`w-4 h-4 svg-animate ${addEmojisEnabled ? '' : 'opacity-60'}`} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -577,9 +589,11 @@ Try asking me to:
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowHelp(!showHelp)}
-                    className="h-8 w-8 p-0 rounded-full"
+                    className={`h-8 w-8 p-0 rounded-full feature-button icon-hover transition-all duration-300 ${
+                      showHelp ? 'animate-pulse-glow' : ''
+                    }`}
                   >
-                    <HelpCircle className="w-4 h-4" />
+                    <HelpCircle className={`w-4 h-4 svg-animate ${showHelp ? 'animate-rotate-pulse' : ''}`} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
