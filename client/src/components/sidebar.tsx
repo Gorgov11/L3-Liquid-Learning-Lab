@@ -263,21 +263,33 @@ export function Sidebar({
                   AI Tips
                 </Button>
                 
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start h-8 px-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Schedule
-                </Button>
+                <Link href="/schedule">
+                  <Button
+                    variant="ghost"
+                    className={`w-full justify-start h-8 px-2 text-sm font-medium transition-all duration-200 ${
+                      location === '/schedule' 
+                        ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-600 hover:to-cyan-700' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    }`}
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Schedule
+                  </Button>
+                </Link>
                 
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start h-8 px-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  Groups
-                </Button>
+                <Link href="/groups">
+                  <Button
+                    variant="ghost"
+                    className={`w-full justify-start h-8 px-2 text-sm font-medium transition-all duration-200 ${
+                      location === '/groups' 
+                        ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/25 hover:from-pink-600 hover:to-pink-700' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    }`}
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Groups
+                  </Button>
+                </Link>
               </div>
               
               {/* Language Selector */}

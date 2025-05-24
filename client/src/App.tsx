@@ -7,6 +7,8 @@ import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
 import StudyMaterials from "@/pages/study-materials";
 import LearningPath from "@/pages/learning-path";
+import Schedule from "@/pages/schedule";
+import Groups from "@/pages/groups";
 
 function Router() {
   return (
@@ -14,6 +16,8 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/study-materials" component={StudyMaterials} />
       <Route path="/learning-path" component={LearningPath} />
+      <Route path="/schedule" component={Schedule} />
+      <Route path="/groups" component={Groups} />
       <Route component={NotFound} />
     </Switch>
   );
