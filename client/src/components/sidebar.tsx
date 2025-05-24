@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Star, History, BarChart3, BookOpen, GraduationCap, X, Brain, Lightbulb, TrendingUp, Zap, Sparkles } from 'lucide-react';
+import { Plus, Star, History, BarChart3, BookOpen, GraduationCap, X, Brain, Lightbulb, TrendingUp, Zap, Sparkles, MapPin, Archive } from 'lucide-react';
+import { Link, useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { ConversationData, UserInterestData } from '@/lib/types';
@@ -72,6 +73,7 @@ export function Sidebar({
   const [newInterest, setNewInterest] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const queryClient = useQueryClient();
+  const [location] = useLocation();
 
   // Fetch conversations
   const { data: conversations = [] } = useQuery<ConversationData[]>({
@@ -166,6 +168,31 @@ export function Sidebar({
                 <Plus className="w-4 h-4 mr-2" />
                 Start Learning
               </Button>
+              
+              {/* Navigation Links */}
+              <div className="grid grid-cols-2 gap-2">
+                <Link href="/study-materials">
+                  <Button
+                    variant={location === '/study-materials' ? "default" : "outline"}
+                    size="sm"
+                    className="w-full text-xs icon-hover"
+                  >
+                    <Archive className="w-3 h-3 mr-1" />
+                    Materials
+                  </Button>
+                </Link>
+                
+                <Link href="/learning-path">
+                  <Button
+                    variant={location === '/learning-path' ? "default" : "outline"}
+                    size="sm"
+                    className="w-full text-xs icon-hover"
+                  >
+                    <MapPin className="w-3 h-3 mr-1" />
+                    Path
+                  </Button>
+                </Link>
+              </div>
               
               <Button
                 variant="outline"
