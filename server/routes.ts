@@ -68,6 +68,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete a conversation
+  app.delete("/api/conversations/:conversationId", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      await storage.deleteConversation(conversationId);
+      res.json({ message: "Conversation deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete conversation" });
+    }
+  });
+
+  // Clear all conversations for a user
+  app.delete("/api/conversations/user/:userId/clear", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      await storage.clearAllConversations(userId);
+      res.json({ message: "All conversations cleared successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to clear conversations" });
+    }
+  });
+
   // Get messages for a conversation
   app.get("/api/conversations/:conversationId/messages", async (req, res) => {
     try {

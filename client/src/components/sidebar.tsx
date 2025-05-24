@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Star, History, BarChart3, BookOpen, GraduationCap, X, Brain, Lightbulb, TrendingUp, Zap, Sparkles, MapPin, Archive, Settings, Globe, Users, Trophy, Calendar, Target, FileText } from 'lucide-react';
+import { Plus, Star, History, BarChart3, BookOpen, GraduationCap, X, Brain, Lightbulb, TrendingUp, Zap, Sparkles, MapPin, Archive, Settings, Globe, Users, Trophy, Calendar, Target, FileText, Trash2 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { LanguageSelector } from './language-selector';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -87,6 +87,46 @@ export function Sidebar({
 
   const handleDeleteInterest = (interestId: number) => {
     deleteInterestMutation.mutate(interestId);
+  };
+
+  // Delete conversation mutation
+  const deleteConversationMutation = useMutation({
+    mutationFn: async (conversationId: number) => {
+      const response = await fetch(`/api/conversations/${conversationId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete conversation');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations', currentUserId] });
+    }
+  });
+
+  // Clear all conversations mutation
+  const clearAllConversationsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/conversations/user/${currentUserId}/clear`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to clear conversations');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations', currentUserId] });
+    }
+  });
+
+  const handleDeleteConversation = (conversationId: number) => {
+    if (confirm('Delete this conversation?')) {
+      deleteConversationMutation.mutate(conversationId);
+    }
+  };
+
+  const handleClearAllConversations = () => {
+    if (confirm('Delete all conversation history? This cannot be undone.')) {
+      clearAllConversationsMutation.mutate();
+    }
   };
 
   // Filter conversations
@@ -309,16 +349,18 @@ export function Sidebar({
                       return (
                         <div
                           key={conversation.id}
-                          onClick={() => onSelectConversation(conversation.id)}
-                          className="group p-2 rounded-md cursor-pointer hover:bg-accent/60 transition-all duration-200 border-l-2 border-transparent hover:border-primary/50"
+                          className="group p-2 rounded-md cursor-pointer hover:bg-accent/60 transition-all duration-200 border-l-2 border-transparent hover:border-primary/50 relative"
                         >
-                          <div className="flex items-center justify-between">
+                          <div 
+                            className="flex items-center justify-between"
+                            onClick={() => onSelectConversation(conversation.id)}
+                          >
                             <div className="flex-1 min-w-0">
                               <p className="text-xs font-medium truncate group-hover:text-primary leading-tight">
                                 {isGenericTitle ? (
                                   <span className="text-muted-foreground italic flex items-center">
                                     <span className="mr-1.5">💭</span>
-                                    Chat #{conversation.id}
+                                    New Chat
                                   </span>
                                 ) : (
                                   conversation.title
@@ -334,6 +376,19 @@ export function Sidebar({
                               </div>
                             </div>
                           </div>
+                          
+                          {/* Delete Button */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-1 top-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteConversation(conversation.id);
+                            }}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
                         </div>
                       );
                     })}
@@ -341,10 +396,21 @@ export function Sidebar({
                 )}
               </div>
 
-              {/* Language Selector */}
+              {/* Settings */}
               <div className="space-y-1">
                 <div className="text-xs font-semibold text-muted-foreground px-2 mb-2">SETTINGS</div>
                 <LanguageSelector />
+                {conversations.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start h-8 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={handleClearAllConversations}
+                  >
+                    <Trash2 className="w-3 h-3 mr-2" />
+                    Clear All History
+                  </Button>
+                )}
               </div>
 
               {/* Learning Interests */}

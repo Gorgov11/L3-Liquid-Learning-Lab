@@ -28,6 +28,8 @@ export interface IStorage {
   createConversation(conversation: InsertConversation): Promise<Conversation>;
   getConversationById(id: number): Promise<Conversation | undefined>;
   updateConversation(id: number, updates: Partial<Conversation>): Promise<Conversation | undefined>;
+  deleteConversation(id: number): Promise<boolean>;
+  clearAllConversations(userId: string): Promise<boolean>;
   
   // Messages
   getMessagesByConversationId(conversationId: number): Promise<Message[]>;
