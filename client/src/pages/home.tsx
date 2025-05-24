@@ -110,25 +110,23 @@ export default function Home() {
               variant="outline"
               size="sm"
               className="bg-gradient-to-r from-primary/10 to-purple-500/10 border-primary/20 hover:from-primary/20 hover:to-purple-500/20 transition-all duration-200"
+              disabled={isGeneratingTest}
               onClick={async () => {
+                setIsGeneratingTest(true);
                 try {
-                  const response = await fetch('/api/generate-knowledge-test', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: currentUserId }),
-                  });
-                  
-                  if (response.ok) {
-                    const testData = await response.json();
-                    console.log('Knowledge test generated:', testData);
-                  }
+                  const response = await apiRequest('/api/generate-knowledge-test', 'POST', { userId: currentUserId });
+                  const responseData = await response.json();
+                  setTestData(responseData);
+                  setTestModalOpen(true);
                 } catch (error) {
                   console.error('Failed to generate test:', error);
+                } finally {
+                  setIsGeneratingTest(false);
                 }
               }}
             >
               <Brain className="w-4 h-4 mr-2" />
-              Generate Test
+              {isGeneratingTest ? 'Generating...' : 'Generate Test'}
             </Button>
           </div>
 
@@ -198,6 +196,13 @@ export default function Home() {
         isOpen={dashboardOpen}
         onClose={() => setDashboardOpen(false)}
         currentUserId={currentUserId}
+      />
+
+      {/* Knowledge Test Modal */}
+      <KnowledgeTestModal
+        isOpen={testModalOpen}
+        onClose={() => setTestModalOpen(false)}
+        testData={testData}
       />
     </div>
   );
