@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/sidebar';
 import { ChatInterface } from '@/components/chat-interface';
 import { VisualPanel } from '@/components/visual-panel';
 import { DashboardModal } from '@/components/dashboard-modal-new';
+import { KnowledgeTestModal } from '@/components/knowledge-test-modal';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { ChatMessage, ConversationData } from '@/lib/types';
@@ -15,6 +16,9 @@ export default function Home() {
   const [currentConversationId, setCurrentConversationId] = useState<number | null>(null);
   const [currentUserId] = useState('user-1'); // Simplified user management
   const [showVisualPanel, setShowVisualPanel] = useState(false);
+  const [testModalOpen, setTestModalOpen] = useState(false);
+  const [testData, setTestData] = useState(null);
+  const [isGeneratingTest, setIsGeneratingTest] = useState(false);
   const queryClient = useQueryClient();
 
   // Get current conversation messages to extract latest visual content
@@ -79,84 +83,75 @@ export default function Home() {
   return (
     <div className="h-screen bg-background text-foreground overflow-hidden">
       {/* Enhanced Header with AI Features */}
-      <header className="bg-card/80 backdrop-blur-sm border-b border-border px-4 sm:px-6 py-3 flex items-center justify-between relative z-50">
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
+      <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-40">
+        <div className="flex items-center justify-between h-14 px-4">
+          {/* Left side - Menu and Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 via-purple-600 to-cyan-500 rounded-lg flex items-center justify-center shadow-md">
-              <svg width="16" height="16" viewBox="0 0 24 24" className="text-white">
-                <defs>
-                  <linearGradient id="simple-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="currentColor" stopOpacity="0.9"/>
-                    <stop offset="100%" stopColor="currentColor" stopOpacity="0.7"/>
-                  </linearGradient>
-                </defs>
-                {/* Simple L³ monogram */}
-                <text x="2" y="16" fontSize="12" fontWeight="bold" fill="url(#simple-gradient)">L</text>
-                <text x="12" y="10" fontSize="8" fontWeight="bold" fill="url(#simple-gradient)">3</text>
-                {/* Subtle liquid drop */}
-                <circle cx="18" cy="6" r="2" fill="currentColor" opacity="0.6">
-                  <animate attributeName="opacity" values="0.6;0.9;0.6" dur="2s" repeatCount="indefinite"/>
-                </circle>
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary via-chart-2 to-chart-3 bg-clip-text text-transparent">
-                Liquid Learning Lab
-              </h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">AI Visual Tutor</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          {/* AI Features Indicators */}
-          <div className="hidden sm:flex items-center space-x-4 text-xs">
-            <div className="flex items-center space-x-1 px-2 py-1 bg-primary/10 rounded-full">
-              <Mic className="w-3 h-3 text-primary" />
-              <span className="text-primary font-medium">Voice</span>
-            </div>
-            <div className="flex items-center space-x-1 px-2 py-1 bg-chart-2/10 rounded-full">
-              <Image className="w-3 h-3 text-chart-2" />
-              <span className="text-chart-2 font-medium">Images</span>
-            </div>
-            <div className="flex items-center space-x-1 px-2 py-1 bg-chart-3/10 rounded-full">
-              <Brain className="w-3 h-3 text-chart-3" />
-              <span className="text-chart-3 font-medium">Mind Maps</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <div className="hidden md:flex items-center space-x-2 text-sm text-muted-foreground">
-              <div className="w-2 h-2 bg-green-500 rounded-full pulse-animation" />
-              <span>AI Online</span>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden p-2"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
             
-            {/* Visual Panel Toggle */}
+            <div className="flex items-center space-x-2">
+              <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-md flex items-center justify-center">
+                <span className="text-white text-sm font-bold">L³</span>
+              </div>
+              <span className="font-semibold text-foreground hidden sm:block">Liquid Learning Lab</span>
+            </div>
+          </div>
+
+          {/* Center - Generate Test Button */}
+          <div className="flex-1 flex justify-center">
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-gradient-to-r from-primary/10 to-purple-500/10 border-primary/20 hover:from-primary/20 hover:to-purple-500/20 transition-all duration-200"
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/generate-knowledge-test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentUserId }),
+                  });
+                  
+                  if (response.ok) {
+                    const testData = await response.json();
+                    console.log('Knowledge test generated:', testData);
+                  }
+                } catch (error) {
+                  console.error('Failed to generate test:', error);
+                }
+              }}
+            >
+              <Brain className="w-4 h-4 mr-2" />
+              Generate Test
+            </Button>
+          </div>
+
+          {/* Right side - Controls */}
+          <div className="flex items-center space-x-1">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowVisualPanel(!showVisualPanel)}
-              className={showVisualPanel ? 'bg-primary/10 text-primary' : ''}
+              className={`p-2 ${showVisualPanel ? 'bg-primary/10 text-primary' : ''}`}
+              title="Toggle Visual Panel"
             >
               <Eye className="w-4 h-4" />
-              <span className="ml-2 hidden sm:inline">Visuals</span>
             </Button>
             
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setDashboardOpen(true)}
+              className="p-2"
+              title="Open Dashboard"
             >
               <Settings className="w-4 h-4" />
-              <span className="ml-2 hidden sm:inline">Dashboard</span>
             </Button>
           </div>
         </div>

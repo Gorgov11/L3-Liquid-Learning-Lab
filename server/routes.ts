@@ -422,6 +422,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate AI knowledge test endpoint
+  app.post("/api/generate-knowledge-test", async (req, res) => {
+    try {
+      const { userId } = req.body;
+
+      // Get user's learning history and interests
+      const conversations = await storage.getConversationsByUserId(userId);
+      const interests = await storage.getUserInterests(userId);
+      const learningProgress = await storage.getLearningProgress(userId);
+
+      // Analyze user's learning patterns
+      const recentTopics = conversations
+        .slice(0, 10) // Last 10 conversations
+        .map(conv => conv.title)
+        .filter(title => title !== "New Learning Session")
+        .join(", ");
+
+      const userInterests = interests.map(i => i.interest).join(", ");
+
+      // Generate AI assessment
+      const assessmentPrompt = `Based on this user's learning activity, create a personalized knowledge assessment:
+
+Recent Learning Topics: ${recentTopics || "No recent topics"}
+User Interests: ${userInterests || "General learning"}
+Learning Progress: ${learningProgress.length} topics explored
+
+Generate a comprehensive assessment with:
+1. Current Level Assessment (3-5 questions to gauge knowledge)
+2. Recommended Learning Goals (based on interests and gaps)
+3. Skill Level Rating (Beginner/Intermediate/Advanced)
+4. Next Steps Suggestions
+
+Respond in JSON format:
+{
+  "currentLevel": "beginner|intermediate|advanced",
+  "assessmentQuestions": [
+    {
+      "question": "Question text",
+      "options": ["A", "B", "C", "D"],
+      "correctAnswer": 0,
+      "topic": "Topic name"
+    }
+  ],
+  "learningGoals": [
+    {
+      "goal": "Goal description",
+      "difficulty": "easy|medium|hard",
+      "estimatedTime": "time estimate"
+    }
+  ],
+  "recommendations": [
+    "Specific recommendation 1",
+    "Specific recommendation 2"
+  ],
+  "strengthAreas": ["Area 1", "Area 2"],
+  "improvementAreas": ["Area 1", "Area 2"]
+}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [{ 
+          role: "user", 
+          content: assessmentPrompt 
+        }],
+        response_format: { type: "json_object" },
+        max_tokens: 1500,
+      });
+
+      const testData = JSON.parse(response.choices[0].message.content || "{}");
+
+      res.json({
+        success: true,
+        assessment: testData,
+        generatedAt: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error("Failed to generate knowledge test:", error);
+      res.status(500).json({ 
+        error: "Failed to generate knowledge test",
+        details: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
