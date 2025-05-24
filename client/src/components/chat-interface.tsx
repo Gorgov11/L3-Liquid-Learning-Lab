@@ -92,19 +92,15 @@ export function ChatInterface({ conversationId, currentUserId }: ChatInterfacePr
     setMessage('');
     resetTranscript();
 
-    // Check if user wants visual aids
-    const lowerContent = messageContent.toLowerCase();
-    const wantsImage = lowerContent.includes('image') || lowerContent.includes('picture') || lowerContent.includes('diagram') || lowerContent.includes('show me');
-    const wantsMindMap = lowerContent.includes('mind map') || lowerContent.includes('mindmap') || lowerContent.includes('structure') || lowerContent.includes('organize');
-
-    if (wantsImage) setIsGeneratingImage(true);
-    if (wantsMindMap) setIsGeneratingMindMap(true);
+    // Always generate visuals automatically for educational content
+    setIsGeneratingImage(true);
+    setIsGeneratingMindMap(true);
 
     try {
       await sendMessageMutation.mutateAsync({
         content: messageContent,
-        generateImage: wantsImage,
-        generateMindMap: wantsMindMap,
+        generateImage: true, // Always generate image
+        generateMindMap: true, // Always generate mind map
       });
     } finally {
       setIsGeneratingImage(false);
