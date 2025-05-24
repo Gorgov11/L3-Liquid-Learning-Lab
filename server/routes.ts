@@ -47,7 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/conversations/:conversationId/messages", async (req, res) => {
     try {
       const conversationId = parseInt(req.params.conversationId);
-      const { content, generateImage, generateMindMap } = req.body;
+      const { content, generateImage, generateMindMap, addEmojis, learningCategory } = req.body;
 
       // Save user message
       const userMessage = await storage.createMessage({
@@ -69,8 +69,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const interestsText = userInterests.map(i => i.interest).join(", ");
 
       // Generate AI response
+      const categoryContext = learningCategory && learningCategory !== 'general' ? `This question is in the ${learningCategory} category. ` : '';
+      const emojiInstruction = addEmojis ? 'Use relevant emojis throughout your response to make it more engaging and visual. ' : '';
+      
       const systemPrompt = `You are an AI tutor for Liquid Learning Lab. You provide educational explanations that are clear, engaging, and personalized. 
-      ${interestsText ? `The user is interested in: ${interestsText}. Try to relate topics to these interests when relevant.` : ''}
+      ${categoryContext}${emojiInstruction}${interestsText ? `The user is interested in: ${interestsText}. Try to relate topics to these interests when relevant.` : ''}
       Provide helpful, accurate educational content. Keep responses conversational but informative.`;
 
       const response = await openai.chat.completions.create({

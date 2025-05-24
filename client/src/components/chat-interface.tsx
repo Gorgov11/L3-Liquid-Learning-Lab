@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Mic, MicOff, Send, Bot, User, Loader2, Brain, BookOpen, ImageIcon, Volume2, VolumeX, Tag, Sparkles } from 'lucide-react';
+import { SettingsModal } from './settings-modal';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { useTextToSpeech } from '@/hooks/use-text-to-speech';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -108,6 +109,8 @@ export function ChatInterface({ conversationId, currentUserId }: ChatInterfacePr
         content: messageContent,
         generateImage: autoImageEnabled,
         generateMindMap: autoMindMapEnabled,
+        addEmojis: addEmojisEnabled,
+        learningCategory: learningCategory,
       });
     } finally {
       setIsGeneratingImage(false);
@@ -148,76 +151,6 @@ Try asking me to:
 
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Feature Control Panel */}
-      <div className="bg-card border-b border-border p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-wrap items-center gap-3">
-            <h3 className="text-sm font-medium text-muted-foreground mr-2">Learning Features:</h3>
-            
-            {/* Voice Toggle */}
-            <Button
-              variant={autoVoiceEnabled ? "default" : "outline"}
-              size="sm"
-              onClick={() => setAutoVoiceEnabled(!autoVoiceEnabled)}
-              className="h-8 px-3 text-xs"
-            >
-              {autoVoiceEnabled ? <Volume2 className="w-3 h-3 mr-1" /> : <VolumeX className="w-3 h-3 mr-1" />}
-              🗣️ Auto Voice
-            </Button>
-
-            {/* Image Toggle */}
-            <Button
-              variant={autoImageEnabled ? "default" : "outline"}
-              size="sm"
-              onClick={() => setAutoImageEnabled(!autoImageEnabled)}
-              className="h-8 px-3 text-xs"
-            >
-              <ImageIcon className="w-3 h-3 mr-1" />
-              🖼️ Auto Images
-            </Button>
-
-            {/* Mind Map Toggle */}
-            <Button
-              variant={autoMindMapEnabled ? "default" : "outline"}
-              size="sm"
-              onClick={() => setAutoMindMapEnabled(!autoMindMapEnabled)}
-              className="h-8 px-3 text-xs"
-            >
-              <Brain className="w-3 h-3 mr-1" />
-              🧠 Mind Maps
-            </Button>
-
-            {/* Emoji Toggle */}
-            <Button
-              variant={addEmojisEnabled ? "default" : "outline"}
-              size="sm"
-              onClick={() => setAddEmojisEnabled(!addEmojisEnabled)}
-              className="h-8 px-3 text-xs"
-            >
-              <Sparkles className="w-3 h-3 mr-1" />
-              😊 Add Emojis
-            </Button>
-
-            {/* Learning Category */}
-            <div className="flex items-center gap-2 ml-auto">
-              <Tag className="w-3 h-3 text-muted-foreground" />
-              <select 
-                value={learningCategory}
-                onChange={(e) => setLearningCategory(e.target.value)}
-                className="text-xs bg-background border border-border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="general">📚 General</option>
-                <option value="science">🔬 Science</option>
-                <option value="math">📐 Mathematics</option>
-                <option value="history">🏛️ History</option>
-                <option value="language">🗣️ Language</option>
-                <option value="programming">💻 Programming</option>
-                <option value="art">🎨 Art & Design</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Minimal Chat Header - ChatGPT style */}
       {conversationId && messages.length === 0 && (
@@ -462,6 +395,91 @@ Try asking me to:
               </Button>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Feature Control Panel - Below Input */}
+      <div className="bg-card border-t border-border p-3">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-muted-foreground mr-3">Learning Features:</span>
+            
+            {/* Voice Toggle */}
+            <Button
+              variant={autoVoiceEnabled ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAutoVoiceEnabled(!autoVoiceEnabled)}
+              className="h-7 px-3 text-xs rounded-full"
+            >
+              {autoVoiceEnabled ? <Volume2 className="w-3 h-3 mr-1" /> : <VolumeX className="w-3 h-3 mr-1" />}
+              🗣️ Auto Voice
+            </Button>
+
+            {/* Image Toggle */}
+            <Button
+              variant={autoImageEnabled ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAutoImageEnabled(!autoImageEnabled)}
+              className="h-7 px-3 text-xs rounded-full"
+            >
+              <ImageIcon className="w-3 h-3 mr-1" />
+              🖼️ Auto Images
+            </Button>
+
+            {/* Mind Map Toggle */}
+            <Button
+              variant={autoMindMapEnabled ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAutoMindMapEnabled(!autoMindMapEnabled)}
+              className="h-7 px-3 text-xs rounded-full"
+            >
+              <Brain className="w-3 h-3 mr-1" />
+              🧠 Mind Maps
+            </Button>
+
+            {/* Emoji Toggle */}
+            <Button
+              variant={addEmojisEnabled ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAddEmojisEnabled(!addEmojisEnabled)}
+              className="h-7 px-3 text-xs rounded-full"
+            >
+              <Sparkles className="w-3 h-3 mr-1" />
+              😊 Add Emojis
+            </Button>
+
+            {/* Settings Modal */}
+            <SettingsModal
+              autoVoiceEnabled={autoVoiceEnabled}
+              setAutoVoiceEnabled={setAutoVoiceEnabled}
+              autoImageEnabled={autoImageEnabled}
+              setAutoImageEnabled={setAutoImageEnabled}
+              autoMindMapEnabled={autoMindMapEnabled}
+              setAutoMindMapEnabled={setAutoMindMapEnabled}
+              addEmojisEnabled={addEmojisEnabled}
+              setAddEmojisEnabled={setAddEmojisEnabled}
+              learningCategory={learningCategory}
+              setLearningCategory={setLearningCategory}
+            />
+
+            {/* Learning Category */}
+            <div className="flex items-center gap-2 ml-auto">
+              <Tag className="w-3 h-3 text-muted-foreground" />
+              <select 
+                value={learningCategory}
+                onChange={(e) => setLearningCategory(e.target.value)}
+                className="text-xs bg-background border border-border rounded-full px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="general">📚 General</option>
+                <option value="science">🔬 Science</option>
+                <option value="math">📐 Mathematics</option>
+                <option value="history">🏛️ History</option>
+                <option value="language">🗣️ Language</option>
+                <option value="programming">💻 Programming</option>
+                <option value="art">🎨 Art & Design</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
     </div>
