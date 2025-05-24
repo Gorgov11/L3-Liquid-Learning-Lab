@@ -113,6 +113,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Auto-create user interest for detected subject
+      try {
+        const existingInterests = await storage.getUserInterests(conversation.userId);
+        const hasSubjectInterest = existingInterests.some(interest => 
+          interest.interest.toLowerCase().includes(detectedSubject.toLowerCase())
+        );
+        
+        if (!hasSubjectInterest && detectedSubject !== "General Learning") {
+          await storage.createUserInterest({
+            userId: conversation.userId,
+            interest: detectedSubject,
+            progress: 10 // Start with 10% progress for new subjects
+          });
+        }
+      } catch (error) {
+        console.log("Failed to create user interest");
+      }
+
+      // Auto-update learning progress for detected subject
+      try {
+        await storage.createOrUpdateLearningProgress({
+          userId: conversation.userId,
+          topic: detectedSubject,
+          progressPercentage: Math.min(100, (existingMessages.length + 1) * 5), // Increase progress based on message count
+          visualsGenerated: (generateImage ? 1 : 0) + (generateMindMap ? 1 : 0),
+          lastActivity: new Date()
+        });
+      } catch (error) {
+        console.log("Failed to update learning progress");
+      }
+
       // Generate AI response with subject context
       const emojiInstruction = addEmojis ? 'Use relevant emojis throughout your response to make it more engaging and visual. ' : '';
       

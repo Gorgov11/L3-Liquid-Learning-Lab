@@ -21,10 +21,6 @@ interface SettingsModalProps {
   // Enhancement Settings
   addEmojisEnabled: boolean;
   setAddEmojisEnabled: (enabled: boolean) => void;
-  
-  // Learning Settings
-  learningCategory: string;
-  setLearningCategory: (category: string) => void;
 }
 
 export function SettingsModal({
@@ -36,8 +32,6 @@ export function SettingsModal({
   setAutoMindMapEnabled,
   addEmojisEnabled,
   setAddEmojisEnabled,
-  learningCategory,
-  setLearningCategory,
 }: SettingsModalProps) {
   const [voiceSpeed, setVoiceSpeed] = useState([1.0]);
   const [imageStyle, setImageStyle] = useState('educational');
@@ -211,32 +205,22 @@ export function SettingsModal({
             </div>
           </div>
 
-          {/* Learning Preferences */}
+          {/* AI Learning System */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-3">
-              <Tag className="w-4 h-4 text-chart-5" />
-              <h3 className="font-semibold">📚 Learning Preferences</h3>
+              <Brain className="w-4 h-4 text-chart-5" />
+              <h3 className="font-semibold">🤖 AI Learning System</h3>
             </div>
             
             <div className="space-y-3">
-              <div className="space-y-2">
-                <Label>Default Learning Category</Label>
-                <Select value={learningCategory} onValueChange={setLearningCategory}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="general">📚 General Knowledge</SelectItem>
-                    <SelectItem value="science">🔬 Science & Research</SelectItem>
-                    <SelectItem value="math">📐 Mathematics</SelectItem>
-                    <SelectItem value="history">🏛️ History & Culture</SelectItem>
-                    <SelectItem value="language">🗣️ Language & Literature</SelectItem>
-                    <SelectItem value="programming">💻 Programming & Tech</SelectItem>
-                    <SelectItem value="art">🎨 Art & Design</SelectItem>
-                    <SelectItem value="business">💼 Business & Finance</SelectItem>
-                    <SelectItem value="health">🏥 Health & Medicine</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="p-3 bg-muted rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  <span className="font-medium text-sm">Intelligent Subject Detection</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  AI automatically detects and categorizes your learning topics, creating personalized study paths and progress tracking.
+                </p>
               </div>
             </div>
           </div>
