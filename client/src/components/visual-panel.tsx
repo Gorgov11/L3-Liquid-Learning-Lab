@@ -79,7 +79,7 @@ export function VisualPanel({ currentImage, currentMindMap, onClose, conversatio
   });
 
   // Download image function
-  const downloadImage = async (imageUrl: string, filename: string) => {
+  const handleDownloadImage = async (imageUrl: string, filename: string) => {
     try {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
@@ -93,6 +93,16 @@ export function VisualPanel({ currentImage, currentMindMap, onClose, conversatio
       document.body.removeChild(a);
     } catch (error) {
       console.error('Download failed:', error);
+    }
+  };
+
+  // Explore mind map node deeper
+  const handleExploreNode = async (nodeText: string) => {
+    if (!conversationId) return;
+    try {
+      await exploreMindMapNode.mutateAsync(nodeText);
+    } catch (error) {
+      console.error('Failed to explore node:', error);
     }
   };
 
