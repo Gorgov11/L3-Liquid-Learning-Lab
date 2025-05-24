@@ -7,6 +7,9 @@ import { Mic, MicOff, Send, Bot, User, Loader2, Brain, BookOpen, ImageIcon, Volu
 import { SettingsModal } from './settings-modal';
 import { DynamicVisualPanel } from './dynamic-visual-panel';
 import { VoiceControlPanel } from './voice-control-panel';
+import { InteractiveMindMap } from './interactive-mindmap';
+import { ThinkingAnimation } from './thinking-animation';
+import { AnimatedBackground } from './animated-background';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { useTextToSpeech } from '@/hooks/use-text-to-speech';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -287,12 +290,23 @@ Try asking me to:
                   </div>
                   <div className="flex-1">
                     <p className="whitespace-pre-wrap">{msg.content}</p>
+                    
+                    {/* Enhanced Interactive Mind Map - Prominently displayed */}
+                    {msg.mindMapData && (
+                      <div className="mt-4 animate-slide-up">
+                        <InteractiveMindMap 
+                          data={msg.mindMapData} 
+                          className="w-full"
+                        />
+                      </div>
+                    )}
+                    
                     {msg.imageUrl && (
-                      <div className="mt-3">
+                      <div className="mt-3 animate-slide-up">
                         <img 
                           src={msg.imageUrl} 
                           alt="AI-generated visual aid" 
-                          className="max-w-full h-auto rounded-lg border border-border"
+                          className="max-w-full h-auto rounded-lg border border-border hover:scale-105 transition-transform duration-300"
                         />
                       </div>
                     )}
@@ -302,20 +316,8 @@ Try asking me to:
             ))
           )}
 
-          {/* Loading indicators */}
-          {sendMessageMutation.isPending && (
-            <div className="ai-bubble chat-bubble p-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-chart-2 to-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <Bot className="w-4 h-4 text-primary-foreground" />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>AI is thinking...</span>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Enhanced Loading Animation */}
+          {sendMessageMutation.isPending && <ThinkingAnimation />}
 
           {isGeneratingImage && (
             <div className="text-center text-sm text-muted-foreground">
