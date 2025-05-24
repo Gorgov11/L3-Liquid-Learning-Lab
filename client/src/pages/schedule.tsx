@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, Clock, Plus, Bot, Target, BookOpen, Users, Zap, TrendingUp, Star, CheckCircle2, AlertCircle, Play, Pause, MoreHorizontal } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { WeeklyCalendar } from '@/components/weekly-calendar';
 
 interface ScheduleEvent {
   id: string;
@@ -143,6 +144,168 @@ export default function Schedule() {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Monthly Calendar Component (inline)
+  const MonthlyCalendar = ({ events, onEventClick, onDateClick }: {
+    events: ScheduleEvent[];
+    onEventClick: (event: ScheduleEvent) => void;
+    onDateClick: (date: Date) => void;
+  }) => {
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const today = new Date();
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+    const firstDayOfWeek = firstDayOfMonth.getDay();
+    const daysInMonth = lastDayOfMonth.getDate();
+
+    const navigateMonth = (direction: 'prev' | 'next') => {
+      const newDate = new Date(currentMonth);
+      newDate.setMonth(currentMonth.getMonth() + (direction === 'next' ? 1 : -1));
+      setCurrentMonth(newDate);
+    };
+
+    const isToday = (date: Date) => date.toDateString() === today.toDateString();
+    const isSameMonth = (date: Date) => date.getMonth() === month && date.getFullYear() === year;
+
+    const getEventsForDate = (date: Date) => {
+      const dateStr = date.toISOString().split('T')[0];
+      return events.filter(event => event.date === dateStr);
+    };
+
+    // Generate calendar days
+    const calendarDays = [];
+    const daysFromPrevMonth = firstDayOfWeek;
+    const prevMonth = new Date(year, month - 1, 0);
+    const daysInPrevMonth = prevMonth.getDate();
+    const totalCells = Math.ceil((daysInMonth + firstDayOfWeek) / 7) * 7;
+    const daysFromNextMonth = totalCells - (daysInMonth + firstDayOfWeek);
+
+    // Previous month days
+    for (let i = daysFromPrevMonth; i > 0; i--) {
+      const date = new Date(year, month - 1, daysInPrevMonth - i + 1);
+      calendarDays.push({ date, isCurrentMonth: false });
+    }
+
+    // Current month days
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      calendarDays.push({ date, isCurrentMonth: true });
+    }
+
+    // Next month days
+    for (let day = 1; day <= daysFromNextMonth; day++) {
+      const date = new Date(year, month + 1, day);
+      calendarDays.push({ date, isCurrentMonth: false });
+    }
+
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    return (
+      <div className="space-y-4">
+        {/* Month Navigation */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-semibold">{monthNames[month]} {year}</h3>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigateMonth('prev')}>‹</Button>
+            <Button variant="outline" size="sm" onClick={() => setCurrentMonth(new Date())}>Today</Button>
+            <Button variant="outline" size="sm" onClick={() => navigateMonth('next')}>›</Button>
+          </div>
+        </div>
+
+        {/* Calendar */}
+        <div className="border rounded-lg overflow-hidden">
+          {/* Day headers */}
+          <div className="grid grid-cols-7 border-b">
+            {dayNames.map((day) => (
+              <div key={day} className="p-3 text-center bg-muted/50 border-r last:border-r-0">
+                <div className="text-sm font-medium text-muted-foreground">{day}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar grid */}
+          <div className="grid grid-cols-7">
+            {calendarDays.map((dayData, index) => {
+              const dayEvents = getEventsForDate(dayData.date);
+              const isCurrentDay = isToday(dayData.date);
+              const isInCurrentMonth = isSameMonth(dayData.date);
+
+              return (
+                <div
+                  key={index}
+                  className={`min-h-24 p-2 border-r border-b last:border-r-0 cursor-pointer hover:bg-muted/30 transition-colors ${
+                    isCurrentDay ? 'bg-primary/10 border-primary/20' : ''
+                  } ${!isInCurrentMonth ? 'bg-muted/20' : ''}`}
+                  onClick={() => onDateClick(dayData.date)}
+                >
+                  <div className="space-y-1">
+                    <div className={`text-sm font-medium ${
+                      isCurrentDay ? 'text-primary' : 
+                      !isInCurrentMonth ? 'text-muted-foreground' : 'text-foreground'
+                    }`}>
+                      {dayData.date.getDate()}
+                    </div>
+
+                    {/* Events */}
+                    <div className="space-y-1">
+                      {dayEvents.slice(0, 3).map((event) => (
+                        <div
+                          key={event.id}
+                          className={`text-xs p-1 rounded text-white truncate cursor-pointer hover:opacity-80 transition-opacity ${
+                            event.priority === 'high' ? 'bg-red-500' :
+                            event.priority === 'medium' ? 'bg-amber-500' : 'bg-green-500'
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEventClick(event);
+                          }}
+                          title={event.title}
+                        >
+                          {event.title}
+                        </div>
+                      ))}
+                      
+                      {dayEvents.length > 3 && (
+                        <div className="text-xs text-muted-foreground">+{dayEvents.length - 3} more</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-red-500 rounded"></div>
+              <span>High Priority</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-amber-500 rounded"></div>
+              <span>Medium Priority</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded"></div>
+              <span>Low Priority</span>
+            </div>
+          </div>
+          <div className="text-muted-foreground">
+            {events.filter(e => {
+              const eventDate = new Date(e.date);
+              return eventDate.getMonth() === month && eventDate.getFullYear() === year;
+            }).length} events this month
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const todayEvents = scheduleEvents.filter(event => event.date === selectedDate);
   const upcomingEvents = scheduleEvents.filter(event => new Date(event.date) > new Date(selectedDate));
 
@@ -234,9 +397,10 @@ export default function Schedule() {
       </div>
 
       <Tabs defaultValue="today" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="today">Today's Schedule</TabsTrigger>
           <TabsTrigger value="week">Weekly View</TabsTrigger>
+          <TabsTrigger value="month">Monthly View</TabsTrigger>
           <TabsTrigger value="goals">Study Goals</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
@@ -438,20 +602,50 @@ export default function Schedule() {
         <TabsContent value="week">
           <Card>
             <CardHeader>
-              <CardTitle>Weekly Schedule Overview</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>Weekly Schedule Overview</span>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Previous Week
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    Next Week
+                    <Calendar className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12">
-                <Calendar className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Weekly Calendar View</h3>
-                <p className="text-muted-foreground mb-4">
-                  Visual calendar interface with drag-and-drop scheduling
-                </p>
-                <Button>
-                  <Bot className="w-4 h-4 mr-2" />
-                  Generate Weekly Schedule
-                </Button>
-              </div>
+              <WeeklyCalendar events={scheduleEvents} onEventClick={(event) => console.log('Event clicked:', event)} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Monthly View */}
+        <TabsContent value="month">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Monthly Calendar Overview</span>
+                <div className="flex items-center gap-2">
+                  <Button>
+                    <Bot className="w-4 h-4 mr-2" />
+                    Generate Monthly Schedule
+                  </Button>
+                  <Button variant="outline">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Event
+                  </Button>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MonthlyCalendar 
+                events={scheduleEvents} 
+                onEventClick={(event) => console.log('Event clicked:', event)}
+                onDateClick={(date) => console.log('Date clicked:', date)}
+              />
             </CardContent>
           </Card>
         </TabsContent>
