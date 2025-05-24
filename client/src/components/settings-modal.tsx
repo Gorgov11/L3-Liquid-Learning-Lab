@@ -48,7 +48,7 @@ export function SettingsModal({
           className="h-7 px-3 text-xs rounded-full"
         >
           <Settings className="w-3 h-3 mr-1" />
-          ⚙️ Settings
+          Settings
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
