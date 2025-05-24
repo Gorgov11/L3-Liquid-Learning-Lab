@@ -144,7 +144,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUserInterest(id: number): Promise<boolean> {
     const result = await db.delete(userInterests).where(eq(userInterests.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async getLearningProgress(userId: string): Promise<LearningProgress[]> {
@@ -153,11 +153,12 @@ export class DatabaseStorage implements IStorage {
 
   async createOrUpdateLearningProgress(insertProgress: InsertLearningProgress): Promise<LearningProgress> {
     // Try to find existing progress for this user and topic
-    const [existing] = await db
+    const existingList = await db
       .select()
       .from(learningProgress)
-      .where(eq(learningProgress.userId, insertProgress.userId))
-      .where(eq(learningProgress.topic, insertProgress.topic));
+      .where(eq(learningProgress.userId, insertProgress.userId));
+    
+    const existing = existingList.find(p => p.topic === insertProgress.topic);
 
     if (existing) {
       // Update existing
@@ -213,4 +214,4 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
