@@ -301,40 +301,40 @@ export function Sidebar({
                     <p className="text-xs text-muted-foreground/70">Start learning to see history</p>
                   </div>
                 ) : (
-                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                  <div className="space-y-0.5 max-h-64 overflow-y-auto">
                     {filteredConversations.map((conversation) => {
-                      const category = getCategoryForConversation(conversation.title);
-                      const categoryColor = getCategoryColor(category);
+                      const isGenericTitle = conversation.title === "New Learning Session" || conversation.title.includes("New Learning Session");
+                      const timeAgo = formatDate(conversation.updatedAt);
                       
                       return (
-                        <Button
+                        <div
                           key={conversation.id}
-                          variant="ghost"
-                          className="w-full justify-start p-2 h-auto text-left"
                           onClick={() => onSelectConversation(conversation.id)}
+                          className="group p-2 rounded-md cursor-pointer hover:bg-accent/60 transition-all duration-200 border-l-2 border-transparent hover:border-primary/50"
                         >
-                          <div className="flex items-start space-x-2 w-full">
-                            <div 
-                              className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${categoryColor}`}
-                            />
+                          <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium truncate">
-                                {conversation.title}
+                              <p className="text-xs font-medium truncate group-hover:text-primary leading-tight">
+                                {isGenericTitle ? (
+                                  <span className="text-muted-foreground italic flex items-center">
+                                    <span className="mr-1.5">💭</span>
+                                    Chat #{conversation.id}
+                                  </span>
+                                ) : (
+                                  conversation.title
+                                )}
                               </p>
-                              <div className="flex items-center space-x-1 mt-1">
-                                <Badge 
-                                  variant="outline" 
-                                  className="text-xs h-4 px-1"
-                                >
-                                  {category}
-                                </Badge>
-                                <span className="text-xs text-muted-foreground">
-                                  {formatDate(conversation.updatedAt)}
+                              <div className="flex items-center justify-between mt-0.5">
+                                <span className="text-xs text-muted-foreground/70">
+                                  {timeAgo}
                                 </span>
+                                {!isGenericTitle && (
+                                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full opacity-60" />
+                                )}
                               </div>
                             </div>
                           </div>
-                        </Button>
+                        </div>
                       );
                     })}
                   </div>

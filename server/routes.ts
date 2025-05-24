@@ -32,6 +32,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update conversation title manually
+  app.patch("/api/conversations/:id/title", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { content } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ message: "Content is required" });
+      }
+
+      // Generate title based on content
+      const titlePrompt = `Create a very short, descriptive title (max 4-5 words) for a learning conversation about: "${content}". 
+      Make it specific and helpful for finding this conversation later. 
+      Examples: "Photosynthesis Process", "Calculus Derivatives", "World War II", "JavaScript Functions"
+      
+      Just return the title, nothing else.`;
+
+      const titleResponse = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: titlePrompt }],
+        max_tokens: 50,
+      });
+
+      const generatedTitle = titleResponse.choices[0].message.content?.trim() || "Learning Session";
+      
+      const updatedConversation = await storage.updateConversation(parseInt(id), {
+        title: generatedTitle
+      });
+
+      res.json(updatedConversation);
+    } catch (error) {
+      console.error("Failed to update conversation title:", error);
+      res.status(500).json({ message: "Failed to update conversation title" });
+    }
+  });
+
   // Get messages for a conversation
   app.get("/api/conversations/:conversationId/messages", async (req, res) => {
     try {
@@ -103,7 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate meaningful conversation title based on content
       const existingMessages = await storage.getMessagesByConversationId(conversationId);
-      if (existingMessages.length <= 2) {
+      if (existingMessages.length === 0) {
         try {
           // Generate a concise title based on the user's question
           const titlePrompt = `Create a very short, descriptive title (max 4-5 words) for a learning conversation about: "${content}". 
