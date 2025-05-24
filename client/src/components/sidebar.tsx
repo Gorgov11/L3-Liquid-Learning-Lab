@@ -159,22 +159,6 @@ export function Sidebar({
         <div className="flex flex-col h-full">
           {/* Compact Header */}
           <div className="p-4 border-b border-border flex-shrink-0">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-gradient-to-br from-primary to-chart-2 rounded-lg flex items-center justify-center">
-                  <GraduationCap className="w-3 h-3 text-primary-foreground" />
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="lg:hidden h-6 w-6 p-0"
-                onClick={onClose}
-              >
-                <X className="w-3 h-3" />
-              </Button>
-            </div>
-            
             <Button 
               onClick={onNewChat}
               className="w-full bg-gradient-to-r from-primary to-chart-2 hover:opacity-90 h-8 text-sm"
