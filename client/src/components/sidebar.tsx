@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Plus, Star, History, BarChart3, BookOpen, GraduationCap, X, Brain, Lightbulb, TrendingUp, Zap, Sparkles, MapPin, Archive, Settings, Globe, Users, Trophy, Calendar, Target, FileText } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { LanguageSelector } from './language-selector';
@@ -20,49 +19,6 @@ interface SidebarProps {
   currentUserId: string;
 }
 
-// Smart topic detection and categorization
-const detectTopicFromTitle = (title: string): { topic: string; category: string; color: string; icon: any } => {
-  const keywords = title.toLowerCase();
-  
-  // Science topics
-  if (keywords.includes('physics') || keywords.includes('chemistry') || keywords.includes('biology') || keywords.includes('atom') || keywords.includes('molecule')) {
-    return { topic: 'Science Exploration', category: 'Science', color: 'bg-blue-500', icon: Zap };
-  }
-  
-  // Math topics
-  if (keywords.includes('math') || keywords.includes('algebra') || keywords.includes('geometry') || keywords.includes('calculus') || keywords.includes('equation')) {
-    return { topic: 'Mathematics', category: 'Math', color: 'bg-green-500', icon: TrendingUp };
-  }
-  
-  // Technology topics
-  if (keywords.includes('programming') || keywords.includes('code') || keywords.includes('computer') || keywords.includes('software') || keywords.includes('ai')) {
-    return { topic: 'Tech Learning', category: 'Technology', color: 'bg-purple-500', icon: Brain };
-  }
-  
-  // History topics
-  if (keywords.includes('history') || keywords.includes('ancient') || keywords.includes('war') || keywords.includes('civilization')) {
-    return { topic: 'History Study', category: 'History', color: 'bg-amber-500', icon: BookOpen };
-  }
-  
-  // Language topics
-  if (keywords.includes('language') || keywords.includes('english') || keywords.includes('spanish') || keywords.includes('grammar')) {
-    return { topic: 'Language Arts', category: 'Language', color: 'bg-pink-500', icon: Sparkles };
-  }
-  
-  // Default for general learning
-  return { topic: 'General Learning', category: 'General', color: 'bg-slate-500', icon: Lightbulb };
-};
-
-// AI-suggested learning topics
-const getAISuggestedTopics = () => [
-  { topic: '🧬 DNA & Genetics', color: 'bg-blue-500', category: 'Science' },
-  { topic: '🚀 Space Exploration', color: 'bg-indigo-500', category: 'Science' },
-  { topic: '💻 AI & Machine Learning', color: 'bg-purple-500', category: 'Technology' },
-  { topic: '🏛️ Ancient Civilizations', color: 'bg-amber-500', category: 'History' },
-  { topic: '🎨 Digital Art Creation', color: 'bg-pink-500', category: 'Art' },
-  { topic: '📊 Data Visualization', color: 'bg-green-500', category: 'Math' },
-];
-
 export function Sidebar({ 
   isOpen, 
   onClose, 
@@ -71,46 +27,56 @@ export function Sidebar({
   onOpenDashboard,
   currentUserId 
 }: SidebarProps) {
+  const [location] = useLocation();
   const [newInterest, setNewInterest] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const queryClient = useQueryClient();
-  const [location] = useLocation();
 
   // Fetch conversations
   const { data: conversations = [] } = useQuery<ConversationData[]>({
-    queryKey: [`/api/conversations/${currentUserId}`],
-    enabled: !!currentUserId,
+    queryKey: ['/api/conversations', currentUserId],
+    queryFn: async () => {
+      const res = await fetch(`/api/conversations/${currentUserId}`);
+      if (!res.ok) throw new Error('Failed to fetch conversations');
+      return res.json();
+    }
   });
 
   // Fetch user interests
   const { data: interests = [] } = useQuery<UserInterestData[]>({
-    queryKey: [`/api/users/${currentUserId}/interests`],
-    enabled: !!currentUserId,
+    queryKey: ['/api/users', currentUserId, 'interests'],
+    queryFn: async () => {
+      const res = await fetch(`/api/users/${currentUserId}/interests`);
+      if (!res.ok) throw new Error('Failed to fetch interests');
+      return res.json();
+    }
   });
 
   // Add interest mutation
   const addInterestMutation = useMutation({
     mutationFn: async (interest: string) => {
-      const response = await apiRequest('POST', `/api/users/${currentUserId}/interests`, {
-        interest,
-        progress: 0,
+      return apiRequest('/api/users/interests', {
+        method: 'POST',
+        body: JSON.stringify({ userId: currentUserId, interest })
       });
-      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${currentUserId}/interests`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', currentUserId, 'interests'] });
       setNewInterest('');
-    },
+    }
   });
 
   // Delete interest mutation
   const deleteInterestMutation = useMutation({
     mutationFn: async (interestId: number) => {
-      await apiRequest('DELETE', `/api/users/${currentUserId}/interests/${interestId}`);
+      return apiRequest(`/api/users/interests/${interestId}`, {
+        method: 'DELETE'
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${currentUserId}/interests`] });
-    },
+      queryClient.invalidateQueries({ queryKey: ['/api/users', currentUserId, 'interests'] });
+    }
   });
 
   const handleAddInterest = (e: React.KeyboardEvent) => {
@@ -123,162 +89,217 @@ export function Sidebar({
     deleteInterestMutation.mutate(interestId);
   };
 
+  // Filter conversations
+  const filteredConversations = conversations.filter(conv =>
+    conv.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Helper functions
+  const getCategoryForConversation = (title: string): string => {
+    const keywords = {
+      'Science': ['physics', 'chemistry', 'biology', 'science', 'quantum', 'atom', 'molecule'],
+      'Math': ['math', 'calculus', 'algebra', 'geometry', 'equation', 'number', 'formula'],
+      'History': ['history', 'ancient', 'civilization', 'war', 'empire', 'culture'],
+      'Literature': ['literature', 'book', 'novel', 'poem', 'story', 'author', 'writing'],
+      'Technology': ['technology', 'computer', 'AI', 'programming', 'software', 'code'],
+      'Language': ['language', 'english', 'spanish', 'french', 'grammar', 'vocabulary']
+    };
+
+    for (const [category, words] of Object.entries(keywords)) {
+      if (words.some(word => title.toLowerCase().includes(word))) {
+        return category;
+      }
+    }
+    return 'General';
+  };
+
+  const getCategoryColor = (category: string): string => {
+    const colors = {
+      'Science': 'bg-blue-500',
+      'Math': 'bg-green-500',
+      'History': 'bg-amber-500',
+      'Literature': 'bg-purple-500',
+      'Technology': 'bg-cyan-500',
+      'Language': 'bg-pink-500',
+      'General': 'bg-gray-500'
+    };
+    return colors[category] || colors['General'];
+  };
+
+  const formatDate = (date: Date | string): string => {
+    const d = new Date(date);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+    if (diffHours < 24) {
+      return `${diffHours}h ago`;
+    } else {
+      const diffDays = Math.floor(diffHours / 24);
+      return diffDays === 1 ? '1d ago' : `${diffDays}d ago`;
+    }
+  };
+
   return (
     <>
       {/* Mobile overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden" 
           onClick={onClose}
         />
       )}
       
       {/* Sidebar */}
       <aside className={`
-        fixed lg:relative inset-y-0 left-0 w-80 bg-card border-r border-border
+        fixed lg:relative inset-y-0 left-0 w-72 bg-card border-r border-border
         transform transition-transform duration-300 ease-in-out z-40
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="p-6 border-b border-border">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-chart-2 rounded-lg flex items-center justify-center">
-                  <GraduationCap className="w-4 h-4 text-primary-foreground" />
+          {/* Compact Header */}
+          <div className="p-4 border-b border-border flex-shrink-0">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-gradient-to-br from-primary to-chart-2 rounded-lg flex items-center justify-center">
+                  <GraduationCap className="w-3 h-3 text-primary-foreground" />
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
-                  L³ Menu
+                <span className="text-lg font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
+                  Liquid Learning
                 </span>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="lg:hidden"
+                className="lg:hidden h-6 w-6 p-0"
                 onClick={onClose}
               >
-                <X className="w-4 h-4" />
+                <X className="w-3 h-3" />
               </Button>
             </div>
             
-            <div className="space-y-3">
-              <Button 
-                onClick={onNewChat}
-                className="w-full bg-gradient-to-r from-primary to-chart-2 hover:opacity-90 h-10"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Start Learning
-              </Button>
-              
-              {/* Main Navigation - Styled like your image */}
+            <Button 
+              onClick={onNewChat}
+              className="w-full bg-gradient-to-r from-primary to-chart-2 hover:opacity-90 h-8 text-sm"
+            >
+              <Plus className="w-3 h-3 mr-2" />
+              Start Learning
+            </Button>
+          </div>
+
+          {/* Scrollable Content */}
+          <ScrollArea className="flex-1">
+            <div className="p-4 space-y-4">
+              {/* Main Navigation */}
               <div className="space-y-1">
+                <div className="text-xs font-semibold text-muted-foreground px-2 mb-2">NAVIGATION</div>
+                
                 <Link href="/">
                   <Button
-                    variant={location === '/' ? "secondary" : "ghost"}
-                    className={`w-full justify-start h-10 px-3 font-medium transition-all duration-200 ${
+                    variant="ghost"
+                    className={`w-full justify-start h-8 px-2 text-sm font-medium transition-all duration-200 ${
                       location === '/' 
-                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700' 
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700' 
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                     }`}
                   >
-                    <BarChart3 className="w-4 h-4 mr-3" />
-                    Learning Dashboard
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Dashboard
                   </Button>
                 </Link>
                 
                 <Link href="/study-materials">
                   <Button
-                    variant={location === '/study-materials' ? "secondary" : "ghost"}
-                    className={`w-full justify-start h-10 px-3 font-medium transition-all duration-200 ${
+                    variant="ghost"
+                    className={`w-full justify-start h-8 px-2 text-sm font-medium transition-all duration-200 ${
                       location === '/study-materials' 
-                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700' 
+                        ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/25 hover:from-purple-600 hover:to-purple-700' 
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                     }`}
                   >
-                    <FileText className="w-4 h-4 mr-3" />
-                    Study Materials
+                    <FileText className="w-4 h-4 mr-2" />
+                    Materials
                   </Button>
                 </Link>
                 
                 <Link href="/learning-path">
                   <Button
-                    variant={location === '/learning-path' ? "secondary" : "ghost"}
-                    className={`w-full justify-start h-10 px-3 font-medium transition-all duration-200 ${
+                    variant="ghost"
+                    className={`w-full justify-start h-8 px-2 text-sm font-medium transition-all duration-200 ${
                       location === '/learning-path' 
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700' 
+                        ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/25 hover:from-green-600 hover:to-green-700' 
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                     }`}
                   >
-                    <MapPin className="w-4 h-4 mr-3" />
-                    Learning Path
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Path
                   </Button>
                 </Link>
               </div>
               
-              <Separator className="my-4" />
-              
-              {/* Additional Features */}
+              {/* Features Section */}
               <div className="space-y-1">
+                <div className="text-xs font-semibold text-muted-foreground px-2 mb-2">FEATURES</div>
+                
                 <Button
                   variant="ghost"
-                  className="w-full justify-start h-10 px-3 font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  className="w-full justify-start h-8 px-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   onClick={onOpenDashboard}
                 >
-                  <Trophy className="w-4 h-4 mr-3" />
+                  <Trophy className="w-4 h-4 mr-2" />
                   Achievements
                 </Button>
                 
                 <Button
                   variant="ghost"
-                  className="w-full justify-start h-10 px-3 font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  className={`w-full justify-start h-8 px-2 text-sm font-medium transition-all duration-200 ${
+                    showSuggestions 
+                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/25' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
                   onClick={() => setShowSuggestions(!showSuggestions)}
                 >
-                  <Lightbulb className="w-4 h-4 mr-3" />
-                  AI Suggestions
+                  <Lightbulb className="w-4 h-4 mr-2" />
+                  AI Tips
                 </Button>
                 
                 <Button
                   variant="ghost"
-                  className="w-full justify-start h-10 px-3 font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  className="w-full justify-start h-8 px-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 >
-                  <Calendar className="w-4 h-4 mr-3" />
-                  Study Schedule
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Schedule
                 </Button>
                 
                 <Button
                   variant="ghost"
-                  className="w-full justify-start h-10 px-3 font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  className="w-full justify-start h-8 px-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 >
-                  <Users className="w-4 h-4 mr-3" />
-                  Study Groups
+                  <Users className="w-4 h-4 mr-2" />
+                  Groups
                 </Button>
               </div>
-              
-              <Separator className="my-4" />
               
               {/* Language Selector */}
-              <div className="space-y-2">
+              <div className="space-y-1">
+                <div className="text-xs font-semibold text-muted-foreground px-2 mb-2">SETTINGS</div>
                 <LanguageSelector />
               </div>
-            </div>
-          </div>
 
-          <ScrollArea className="flex-1 p-6">
-            {/* Learning Interests */}
-            <div className="gradient-border mb-6">
-              <div className="gradient-border-inner">
-                <h3 className="font-semibold mb-3 flex items-center space-x-2">
-                  <Star className="w-4 h-4 text-primary" />
-                  <span>Learning Interests</span>
-                </h3>
+              {/* Learning Interests */}
+              <div className="space-y-1">
+                <div className="text-xs font-semibold text-muted-foreground px-2 mb-2 flex items-center gap-2">
+                  <Star className="w-3 h-3 text-primary" />
+                  INTERESTS
+                </div>
                 
                 <div className="space-y-2 mb-3">
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1">
                     {interests.map((interest) => (
                       <Badge
                         key={interest.id}
                         variant="secondary"
-                        className="bg-primary/20 text-primary border-primary/30 group cursor-pointer"
+                        className="text-xs bg-primary/20 text-primary border-primary/30 group cursor-pointer"
                         onClick={() => handleDeleteInterest(interest.id)}
                       >
                         {interest.interest}
@@ -294,111 +315,101 @@ export function Sidebar({
                   value={newInterest}
                   onChange={(e) => setNewInterest(e.target.value)}
                   onKeyDown={handleAddInterest}
-                  className="text-sm"
+                  className="text-sm h-8 mb-4"
                 />
               </div>
-            </div>
 
-            {/* AI Suggestions Panel */}
-            {showSuggestions && (
-              <div className="mb-6 animate-in slide-in-from-top duration-300">
-                <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-                  <h3 className="font-semibold mb-3 text-blue-900 dark:text-blue-100 flex items-center space-x-2">
-                    <Brain className="w-4 h-4" />
-                    <span>AI Learning Suggestions</span>
-                  </h3>
-                  <div className="grid grid-cols-1 gap-2">
-                    {getAISuggestedTopics().slice(0, 4).map((suggestion, index) => (
-                      <Button
-                        key={index}
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start p-2 h-auto text-left hover:bg-white/50 dark:hover:bg-black/20"
-                        onClick={onNewChat}
-                      >
-                        <div className={`w-2 h-2 rounded-full ${suggestion.color} mr-2`} />
-                        <div>
-                          <div className="font-medium text-xs">{suggestion.topic}</div>
-                          <div className="text-xs text-muted-foreground">{suggestion.category}</div>
-                        </div>
-                      </Button>
-                    ))}
+              {/* Learning Suggestions */}
+              {showSuggestions && (
+                <div className="space-y-1">
+                  <div className="text-xs font-semibold text-muted-foreground px-2 mb-2">AI SUGGESTIONS</div>
+                  
+                  <div className="space-y-2">
+                    <div className="p-2 rounded-lg bg-chart-1/10 border border-chart-1/20">
+                      <h4 className="text-xs font-medium text-chart-1 mb-1">Science</h4>
+                      <p className="text-xs text-muted-foreground">Explore quantum physics fundamentals</p>
+                    </div>
+                    
+                    <div className="p-2 rounded-lg bg-chart-2/10 border border-chart-2/20">
+                      <h4 className="text-xs font-medium text-chart-2 mb-1">Mathematics</h4>
+                      <p className="text-xs text-muted-foreground">Practice calculus problem solving</p>
+                    </div>
+                    
+                    <div className="p-2 rounded-lg bg-chart-3/10 border border-chart-3/20">
+                      <h4 className="text-xs font-medium text-chart-3 mb-1">History</h4>
+                      <p className="text-xs text-muted-foreground">Learn about ancient civilizations</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Smart Recent Sessions */}
-            <div className="mb-6">
-              <h3 className="font-semibold mb-3 text-muted-foreground flex items-center space-x-2">
-                <History className="w-4 h-4" />
-                <span>Learning History</span>
-              </h3>
-              <div className="space-y-2">
-                {conversations.slice(0, 6).map((conversation) => {
-                  const topicData = detectTopicFromTitle(conversation.title);
-                  const IconComponent = topicData.icon;
+              {/* Conversations */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between px-2 mb-2">
+                  <div className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                    <History className="w-3 h-3" />
+                    RECENT CHATS
+                  </div>
                   
-                  return (
-                    <Button
-                      key={conversation.id}
-                      variant="ghost"
-                      className="w-full justify-start p-3 h-auto group hover:bg-muted/50 transition-all duration-200"
-                      onClick={() => onSelectConversation(conversation.id)}
-                    >
-                      <div className="flex items-center space-x-3 w-full">
-                        <div className={`w-8 h-8 rounded-lg ${topicData.color} flex items-center justify-center text-white flex-shrink-0`}>
-                          <IconComponent className="w-4 h-4" />
-                        </div>
-                        <div className="text-left flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate">
-                            {topicData.topic}
+                  {conversations.length > 0 && (
+                    <Input
+                      type="text"
+                      placeholder="Search..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-20 h-6 text-xs"
+                    />
+                  )}
+                </div>
+                
+                {filteredConversations.length === 0 ? (
+                  <div className="text-center py-4">
+                    <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-muted flex items-center justify-center">
+                      <Brain className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-1">No conversations yet</p>
+                    <p className="text-xs text-muted-foreground/70">Start learning to see history</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {filteredConversations.map((conversation) => {
+                      const category = getCategoryForConversation(conversation.title);
+                      const categoryColor = getCategoryColor(category);
+                      
+                      return (
+                        <Button
+                          key={conversation.id}
+                          variant="ghost"
+                          className="w-full justify-start p-2 h-auto text-left"
+                          onClick={() => onSelectConversation(conversation.id)}
+                        >
+                          <div className="flex items-start space-x-2 w-full">
+                            <div 
+                              className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${categoryColor}`}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium truncate">
+                                {conversation.title}
+                              </p>
+                              <div className="flex items-center space-x-1 mt-1">
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-xs h-4 px-1"
+                                >
+                                  {category}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {formatDate(conversation.updatedAt)}
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-xs text-muted-foreground flex items-center space-x-2">
-                            <Badge variant="secondary" className="text-xs px-1 py-0">
-                              {topicData.category}
-                            </Badge>
-                            <span>•</span>
-                            <span>{new Date(conversation.updatedAt).toLocaleDateString()}</span>
-                          </div>
-                        </div>
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <div className="w-2 h-2 bg-primary rounded-full" />
-                        </div>
-                      </div>
-                    </Button>
-                  );
-                })}
-                {conversations.length === 0 && (
-                  <div className="text-center py-6">
-                    <Lightbulb className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
-                    <p className="text-sm text-muted-foreground">Start your first learning session!</p>
-                    <p className="text-xs text-muted-foreground mt-1">AI will automatically categorize your topics</p>
+                        </Button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
-            </div>
-
-            <Separator className="my-4" />
-
-            {/* Navigation */}
-            <div className="space-y-2">
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={onOpenDashboard}
-              >
-                <BarChart3 className="w-4 h-4 mr-3 text-primary" />
-                Learning Dashboard
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <BookOpen className="w-4 h-4 mr-3 text-primary" />
-                Study Materials
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <GraduationCap className="w-4 h-4 mr-3 text-primary" />
-                Learning Path
-              </Button>
             </div>
           </ScrollArea>
         </div>
