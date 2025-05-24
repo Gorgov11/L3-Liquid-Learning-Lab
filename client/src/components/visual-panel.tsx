@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Eye, Image, Map, Bookmark, Share2, Loader2, X } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
+import { Eye, Image, Map, Bookmark, Share2, Loader2, X, Download, History, Plus, ChevronRight, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { MindMapData } from '@/lib/types';
 
@@ -10,38 +10,90 @@ interface VisualPanelProps {
   currentImage?: string | null;
   currentMindMap?: MindMapData | null;
   onClose?: () => void;
+  conversationId?: number | null;
+  currentUserId?: string;
 }
 
-export function VisualPanel({ currentImage, currentMindMap, onClose }: VisualPanelProps) {
-  const [customImagePrompt, setCustomImagePrompt] = useState('');
-  const [customMindMapTopic, setCustomMindMapTopic] = useState('');
+interface SavedVisual {
+  id: string;
+  type: 'image' | 'mindmap';
+  data: string | MindMapData;
+  title: string;
+  timestamp: Date;
+}
 
-  // Generate custom image mutation
-  const generateImageMutation = useMutation({
-    mutationFn: async (prompt: string) => {
-      const response = await apiRequest('POST', '/api/generate-image', { prompt });
-      return response.json();
-    },
-  });
+export function VisualPanel({ currentImage, currentMindMap, onClose, conversationId, currentUserId }: VisualPanelProps) {
+  const [activeTab, setActiveTab] = useState<'current' | 'history'>('current');
+  const [savedVisuals, setSavedVisuals] = useState<SavedVisual[]>([]);
+  const [imageZoom, setImageZoom] = useState(1);
+  const [selectedMindMapNode, setSelectedMindMapNode] = useState<string | null>(null);
+  const [expandedBranches, setExpandedBranches] = useState<Set<string>>(new Set());
+  const imageRef = useRef<HTMLImageElement>(null);
+  const queryClient = useQueryClient();
 
-  // Generate custom mind map mutation
-  const generateMindMapMutation = useMutation({
-    mutationFn: async (topic: string) => {
-      const response = await apiRequest('POST', '/api/generate-mindmap', { topic });
-      return response.json();
-    },
-  });
-
-  const handleGenerateImage = async () => {
-    if (!customImagePrompt.trim()) return;
-    await generateImageMutation.mutateAsync(customImagePrompt);
-    setCustomImagePrompt('');
+  // Download image function
+  const downloadImage = async (imageUrl: string, filename: string) => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
   };
 
-  const handleGenerateMindMap = async () => {
-    if (!customMindMapTopic.trim()) return;
-    await generateMindMapMutation.mutateAsync(customMindMapTopic);
-    setCustomMindMapTopic('');
+  // Save visual to memory
+  const saveToMemory = (type: 'image' | 'mindmap', data: string | MindMapData, title: string) => {
+    const newVisual: SavedVisual = {
+      id: Date.now().toString(),
+      type,
+      data,
+      title,
+      timestamp: new Date(),
+    };
+    setSavedVisuals(prev => [newVisual, ...prev]);
+  };
+
+  // Explore mind map node deeper
+  const exploreMindMapNode = useMutation({
+    mutationFn: async (nodeText: string) => {
+      if (!conversationId) throw new Error('No conversation ID');
+      const response = await apiRequest('POST', `/api/conversations/${conversationId}/messages`, {
+        content: `Tell me more about: ${nodeText}`,
+        generateImage: true,
+        generateMindMap: true,
+        addEmojis: true,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/conversations/${conversationId}/messages`] });
+    },
+  });
+
+  // Download image function
+  const downloadImage = async (imageUrl: string, filename: string) => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
   };
 
   return (
