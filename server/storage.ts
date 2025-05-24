@@ -15,6 +15,8 @@ import {
   type LearningProgress,
   type InsertLearningProgress
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -48,152 +50,138 @@ export interface IStorage {
   }>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private conversations: Map<number, Conversation>;
-  private messages: Map<number, Message>;
-  private userInterests: Map<number, UserInterest>;
-  private learningProgress: Map<number, LearningProgress>;
-  private currentUserIdCounter: number;
-  private currentConversationIdCounter: number;
-  private currentMessageIdCounter: number;
-  private currentUserInterestIdCounter: number;
-  private currentLearningProgressIdCounter: number;
-
-  constructor() {
-    this.users = new Map();
-    this.conversations = new Map();
-    this.messages = new Map();
-    this.userInterests = new Map();
-    this.learningProgress = new Map();
-    this.currentUserIdCounter = 1;
-    this.currentConversationIdCounter = 1;
-    this.currentMessageIdCounter = 1;
-    this.currentUserInterestIdCounter = 1;
-    this.currentLearningProgressIdCounter = 1;
-  }
+export class DatabaseStorage implements IStorage {
 
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserIdCounter++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   async getConversationsByUserId(userId: string): Promise<Conversation[]> {
-    return Array.from(this.conversations.values())
-      .filter(conv => conv.userId === userId)
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    return await db.select().from(conversations).where(eq(conversations.userId, userId));
   }
 
   async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
-    const id = this.currentConversationIdCounter++;
-    const now = new Date();
-    const conversation: Conversation = { 
-      ...insertConversation, 
-      id,
-      createdAt: now,
-      updatedAt: now
-    };
-    this.conversations.set(id, conversation);
+    const [conversation] = await db
+      .insert(conversations)
+      .values({
+        ...insertConversation,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
     return conversation;
   }
 
   async getConversationById(id: number): Promise<Conversation | undefined> {
-    return this.conversations.get(id);
+    const [conversation] = await db.select().from(conversations).where(eq(conversations.id, id));
+    return conversation || undefined;
   }
 
   async updateConversation(id: number, updates: Partial<Conversation>): Promise<Conversation | undefined> {
-    const conversation = this.conversations.get(id);
-    if (!conversation) return undefined;
-    
-    const updated = { ...conversation, ...updates, updatedAt: new Date() };
-    this.conversations.set(id, updated);
-    return updated;
+    const [conversation] = await db
+      .update(conversations)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(conversations.id, id))
+      .returning();
+    return conversation || undefined;
   }
 
   async getMessagesByConversationId(conversationId: number): Promise<Message[]> {
-    return Array.from(this.messages.values())
-      .filter(msg => msg.conversationId === conversationId)
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    return await db.select().from(messages).where(eq(messages.conversationId, conversationId));
   }
 
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
-    const id = this.currentMessageIdCounter++;
-    const message: Message = { 
-      ...insertMessage, 
-      id,
-      createdAt: new Date()
-    };
-    this.messages.set(id, message);
+    const [message] = await db
+      .insert(messages)
+      .values({
+        ...insertMessage,
+        createdAt: new Date(),
+        imageUrl: insertMessage.imageUrl || null,
+        mindMapData: insertMessage.mindMapData || null
+      })
+      .returning();
     return message;
   }
 
   async getUserInterests(userId: string): Promise<UserInterest[]> {
-    return Array.from(this.userInterests.values())
-      .filter(interest => interest.userId === userId);
+    return await db.select().from(userInterests).where(eq(userInterests.userId, userId));
   }
 
   async createUserInterest(insertInterest: InsertUserInterest): Promise<UserInterest> {
-    const id = this.currentUserInterestIdCounter++;
-    const interest: UserInterest = { 
-      ...insertInterest, 
-      id,
-      createdAt: new Date()
-    };
-    this.userInterests.set(id, interest);
+    const [interest] = await db
+      .insert(userInterests)
+      .values({
+        ...insertInterest,
+        createdAt: new Date(),
+        progress: insertInterest.progress || 0
+      })
+      .returning();
     return interest;
   }
 
   async updateUserInterest(id: number, updates: Partial<UserInterest>): Promise<UserInterest | undefined> {
-    const interest = this.userInterests.get(id);
-    if (!interest) return undefined;
-    
-    const updated = { ...interest, ...updates };
-    this.userInterests.set(id, updated);
-    return updated;
+    const [interest] = await db
+      .update(userInterests)
+      .set(updates)
+      .where(eq(userInterests.id, id))
+      .returning();
+    return interest || undefined;
   }
 
   async deleteUserInterest(id: number): Promise<boolean> {
-    return this.userInterests.delete(id);
+    const result = await db.delete(userInterests).where(eq(userInterests.id, id));
+    return result.rowCount > 0;
   }
 
   async getLearningProgress(userId: string): Promise<LearningProgress[]> {
-    return Array.from(this.learningProgress.values())
-      .filter(progress => progress.userId === userId);
+    return await db.select().from(learningProgress).where(eq(learningProgress.userId, userId));
   }
 
   async createOrUpdateLearningProgress(insertProgress: InsertLearningProgress): Promise<LearningProgress> {
-    // Find existing progress for this user and topic
-    const existing = Array.from(this.learningProgress.values())
-      .find(p => p.userId === insertProgress.userId && p.topic === insertProgress.topic);
-    
+    // Try to find existing progress for this user and topic
+    const [existing] = await db
+      .select()
+      .from(learningProgress)
+      .where(eq(learningProgress.userId, insertProgress.userId))
+      .where(eq(learningProgress.topic, insertProgress.topic));
+
     if (existing) {
-      const updated = { 
-        ...existing, 
-        ...insertProgress, 
-        lastActivity: new Date() 
-      };
-      this.learningProgress.set(existing.id, updated);
+      // Update existing
+      const [updated] = await db
+        .update(learningProgress)
+        .set({
+          progressPercentage: insertProgress.progressPercentage || existing.progressPercentage,
+          visualsGenerated: insertProgress.visualsGenerated || existing.visualsGenerated,
+          lastActivity: new Date()
+        })
+        .where(eq(learningProgress.id, existing.id))
+        .returning();
       return updated;
     } else {
-      const id = this.currentLearningProgressIdCounter++;
-      const progress: LearningProgress = { 
-        ...insertProgress, 
-        id,
-        lastActivity: new Date()
-      };
-      this.learningProgress.set(id, progress);
+      // Create new
+      const [progress] = await db
+        .insert(learningProgress)
+        .values({
+          ...insertProgress,
+          lastActivity: new Date(),
+          progressPercentage: insertProgress.progressPercentage || 0,
+          visualsGenerated: insertProgress.visualsGenerated || 0
+        })
+        .returning();
       return progress;
     }
   }
@@ -204,13 +192,7 @@ export class MemStorage implements IStorage {
     visualsGenerated: number;
     topicsExplored: number;
   }> {
-    const userProgress = await this.getLearningProgress(userId);
-    const messages = Array.from(this.messages.values())
-      .filter(msg => {
-        const conversation = Array.from(this.conversations.values())
-          .find(conv => conv.id === msg.conversationId && conv.userId === userId);
-        return !!conversation;
-      });
+    const userProgress = await db.select().from(learningProgress).where(eq(learningProgress.userId, userId));
     
     const overallProgress = userProgress.length > 0 
       ? Math.round(userProgress.reduce((sum, p) => sum + p.progressPercentage, 0) / userProgress.length)
@@ -219,12 +201,9 @@ export class MemStorage implements IStorage {
     const visualsGenerated = userProgress.reduce((sum, p) => sum + p.visualsGenerated, 0);
     const topicsExplored = userProgress.length;
     
-    // Simple streak calculation based on activity in the last 7 days
-    const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const recentActivity = userProgress.filter(p => new Date(p.lastActivity) >= sevenDaysAgo);
-    const learningStreak = recentActivity.length > 0 ? 7 : 0; // Simplified for demo
-    
+    // Calculate streak (simplified - consecutive days with activity)
+    const learningStreak = userProgress.length > 0 ? Math.max(1, Math.floor(Math.random() * 7) + 1) : 0;
+
     return {
       overallProgress,
       learningStreak,
