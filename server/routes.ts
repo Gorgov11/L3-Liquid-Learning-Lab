@@ -96,7 +96,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate image automatically for educational responses
       if (shouldGenerateVisuals) {
         try {
-          const imagePrompt = `Educational diagram or illustration for: ${content}. Make it clear, informative, and suitable for learning.`;
+          const imagePrompt = `Create a comprehensive educational visual that explains: ${content}. 
+          The image should be designed as a learning aid that:
+          - Breaks down the topic into clear, digestible components
+          - Uses diagrams, flowcharts, or step-by-step illustrations
+          - Includes descriptive labels and annotations
+          - Shows cause-and-effect relationships or processes
+          - Uses a clean, textbook-style layout with good readability
+          - Employs colors strategically to highlight important concepts
+          - Presents information in a logical, easy-to-follow sequence
+          - Avoids decorative elements that distract from learning
+          - Focuses on helping students understand and remember the concept`;
+          
           const imageResponse = await openai.images.generate({
             model: "dall-e-3",
             prompt: imagePrompt,
@@ -255,7 +266,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Prompt is required" });
       }
 
-      const imagePrompt = `Educational diagram or illustration for: ${prompt}. Make it clear, informative, and suitable for learning.`;
+      const imagePrompt = `Create an educational, step-by-step visual diagram that explains: ${prompt}. 
+      The image should:
+      - Break down complex concepts into simple, easy-to-understand parts
+      - Include clear labels and annotations
+      - Use a clean, textbook-style design with good contrast
+      - Show relationships between different elements
+      - Be suitable for students to learn from
+      - Use diagrams, flowcharts, or infographics style
+      - Avoid cluttered or overly artistic elements
+      - Focus on clarity and educational value`;
+      
       const response = await openai.images.generate({
         model: "dall-e-3",
         prompt: imagePrompt,
@@ -264,7 +285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         quality: "standard",
       });
 
-      res.json({ url: response.data[0].url });
+      res.json({ url: response.data[0]?.url });
     } catch (error) {
       console.error("Image generation failed:", error);
       res.status(500).json({ message: "Failed to generate image" });
