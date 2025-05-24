@@ -101,15 +101,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Subject detection failed, using general category");
       }
 
-      // Update conversation title with detected subject (only for first few messages)
+      // Generate meaningful conversation title based on content
       const existingMessages = await storage.getMessagesByConversationId(conversationId);
       if (existingMessages.length <= 2) {
         try {
+          // Generate a concise title based on the user's question
+          const titlePrompt = `Create a very short, descriptive title (max 4-5 words) for a learning conversation about: "${content}". 
+          Make it specific and helpful for finding this conversation later. 
+          Examples: "Photosynthesis Process", "Calculus Derivatives", "World War II", "JavaScript Functions"
+          
+          Just return the title, nothing else.`;
+
+          const titleResponse = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [{ role: "user", content: titlePrompt }],
+            max_tokens: 50,
+          });
+
+          const generatedTitle = titleResponse.choices[0].message.content?.trim() || detectedSubject;
+          
           await storage.updateConversation(conversationId, {
-            title: `${subjectIcon} ${detectedSubject} Discussion`
+            title: `${subjectIcon} ${generatedTitle}`
           });
         } catch (error) {
-          console.log("Failed to update conversation title");
+          console.log("Failed to update conversation title, using detected subject");
+          try {
+            await storage.updateConversation(conversationId, {
+              title: `${subjectIcon} ${detectedSubject}`
+            });
+          } catch (fallbackError) {
+            console.log("Title update completely failed");
+          }
         }
       }
 
