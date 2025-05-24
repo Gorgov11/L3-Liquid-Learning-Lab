@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BackNavigation } from '@/components/back-navigation';
 import { 
   BookOpen, 
   Brain, 
@@ -213,6 +214,9 @@ export default function StudyMaterials() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Back Navigation */}
+      <BackNavigation title="Study Materials" showHomeButton={true} />
+      
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white p-6 gradient-animation">
         <div className="max-w-7xl mx-auto">

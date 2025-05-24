@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BackNavigation } from '@/components/back-navigation';
 import { 
   MapPin,
   CheckCircle,
@@ -274,6 +275,9 @@ export default function LearningPath() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Back Navigation */}
+      <BackNavigation title="Learning Path" showHomeButton={true} />
+      
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white p-6 gradient-animation">
         <div className="max-w-7xl mx-auto">
