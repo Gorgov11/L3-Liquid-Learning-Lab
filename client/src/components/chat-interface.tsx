@@ -416,243 +416,312 @@ Try asking me to:
         </div>
       </div>
 
-      {/* Feature Control Panel - Below Input */}
-      <div className="bg-card border-t border-border p-2">
-        <div className="max-w-4xl mx-auto">
+      {/* Smart Feature Control Panel */}
+      <div className="bg-gradient-to-r from-card via-card/95 to-card border-t border-border/50 backdrop-blur-sm">
+        <div className="max-w-4xl mx-auto px-4 py-3">
           <TooltipProvider>
-            <div className="flex items-center justify-center gap-1">
+            <div className="flex items-center justify-between">
               
-              {/* Voice Toggle */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={autoVoiceEnabled ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setAutoVoiceEnabled(!autoVoiceEnabled)}
-                    className={`h-8 w-8 p-0 rounded-full feature-button icon-hover transition-all duration-300 ${
-                      autoVoiceEnabled ? 'animate-pulse-glow' : ''
-                    }`}
-                  >
-                    {autoVoiceEnabled ? (
-                      <Volume2 className="w-4 h-4 svg-animate" />
-                    ) : (
-                      <VolumeX className="w-4 h-4 svg-animate opacity-60" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">
-                    {autoVoiceEnabled ? "Auto Voice: ON" : "Auto Voice: OFF"}
-                    <br />
-                    <span className="text-muted-foreground">AI will read responses aloud</span>
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-
-              {/* Image Toggle */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={autoImageEnabled ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setAutoImageEnabled(!autoImageEnabled)}
-                    className={`h-8 w-8 p-0 rounded-full feature-button icon-hover transition-all duration-300 ${
-                      autoImageEnabled ? 'animate-float' : ''
-                    }`}
-                  >
-                    <ImageIcon className={`w-4 h-4 svg-animate ${autoImageEnabled ? '' : 'opacity-60'}`} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">
-                    {autoImageEnabled ? "Auto Images: ON" : "Auto Images: OFF"}
-                    <br />
-                    <span className="text-muted-foreground">Generate visual aids automatically</span>
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-
-              {/* Mind Map Toggle */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={autoMindMapEnabled ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setAutoMindMapEnabled(!autoMindMapEnabled)}
-                    className={`h-8 w-8 p-0 rounded-full feature-button icon-hover transition-all duration-300 ${
-                      autoMindMapEnabled ? 'animate-rotate-pulse' : ''
-                    }`}
-                  >
-                    <Brain className={`w-4 h-4 svg-animate ${autoMindMapEnabled ? '' : 'opacity-60'}`} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">
-                    {autoMindMapEnabled ? "Mind Maps: ON" : "Mind Maps: OFF"}
-                    <br />
-                    <span className="text-muted-foreground">Create interactive mind maps</span>
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-
-              {/* Emoji Toggle */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={addEmojisEnabled ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setAddEmojisEnabled(!addEmojisEnabled)}
-                    className={`h-8 w-8 p-0 rounded-full feature-button icon-hover transition-all duration-300 ripple ${
-                      addEmojisEnabled ? 'animate-bounce-in' : ''
-                    }`}
-                  >
-                    <Sparkles className={`w-4 h-4 svg-animate ${addEmojisEnabled ? '' : 'opacity-60'}`} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">
-                    {addEmojisEnabled ? "Emojis: ON" : "Emojis: OFF"}
-                    <br />
-                    <span className="text-muted-foreground">Add emojis to responses</span>
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-
-              {/* Divider */}
-              <div className="w-px h-6 bg-border mx-2" />
-
-              {/* Learning Category */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="relative">
-                    <select 
-                      value={learningCategory}
-                      onChange={(e) => setLearningCategory(e.target.value)}
-                      className="h-8 w-8 appearance-none bg-background border border-border rounded-full text-center text-xs focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              {/* Left: AI Features Group */}
+              <div className="flex items-center gap-2">
+                <div className="text-xs font-medium text-muted-foreground mr-2">AI Features</div>
+                
+                {/* Voice Toggle */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={autoVoiceEnabled ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setAutoVoiceEnabled(!autoVoiceEnabled)}
+                      className={`h-9 w-9 p-0 rounded-xl transition-all duration-300 ${
+                        autoVoiceEnabled 
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 animate-pulse-glow' 
+                          : 'hover:bg-muted/80 hover:scale-105'
+                      }`}
                     >
-                      <option value="general">📚</option>
-                      <option value="science">🔬</option>
-                      <option value="math">📐</option>
-                      <option value="history">🏛️</option>
-                      <option value="language">🗣️</option>
-                      <option value="programming">💻</option>
-                      <option value="art">🎨</option>
-                    </select>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">
-                    Learning Category
-                    <br />
-                    <span className="text-muted-foreground">
-                      {learningCategory === 'general' && 'General Learning'}
-                      {learningCategory === 'science' && 'Science & Biology'}
-                      {learningCategory === 'math' && 'Mathematics'}
-                      {learningCategory === 'history' && 'History'}
-                      {learningCategory === 'language' && 'Language Arts'}
-                      {learningCategory === 'programming' && 'Programming'}
-                      {learningCategory === 'art' && 'Art & Design'}
-                    </span>
-                  </p>
-                </TooltipContent>
-              </Tooltip>
+                      {autoVoiceEnabled ? (
+                        <Volume2 className="w-4 h-4" />
+                      ) : (
+                        <VolumeX className="w-4 h-4 opacity-60" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <div className="text-center">
+                      <p className="font-medium text-sm">Voice Assistant</p>
+                      <p className="text-xs text-muted-foreground">
+                        {autoVoiceEnabled ? "✅ Auto-reading enabled" : "❌ Voice disabled"}
+                      </p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
 
-              {/* Settings */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <SettingsModal
-                      autoVoiceEnabled={autoVoiceEnabled}
-                      setAutoVoiceEnabled={setAutoVoiceEnabled}
-                      autoImageEnabled={autoImageEnabled}
-                      setAutoImageEnabled={setAutoImageEnabled}
-                      autoMindMapEnabled={autoMindMapEnabled}
-                      setAutoMindMapEnabled={setAutoMindMapEnabled}
-                      addEmojisEnabled={addEmojisEnabled}
-                      setAddEmojisEnabled={setAddEmojisEnabled}
-                      learningCategory={learningCategory}
-                      setLearningCategory={setLearningCategory}
-                    />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">
-                    Advanced Settings
-                    <br />
-                    <span className="text-muted-foreground">Configure voice speed, image styles, etc.</span>
-                  </p>
-                </TooltipContent>
-              </Tooltip>
+                {/* Visual Features Group */}
+                <div className="flex items-center gap-1 px-2 py-1 bg-muted/30 rounded-lg">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setAutoImageEnabled(!autoImageEnabled)}
+                        className={`h-7 w-7 p-0 rounded-lg transition-all duration-300 ${
+                          autoImageEnabled 
+                            ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-md' 
+                            : 'hover:bg-background/80'
+                        }`}
+                      >
+                        <ImageIcon className={`w-3.5 h-3.5 ${autoImageEnabled ? '' : 'opacity-50'}`} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p className="text-xs">
+                        <span className="font-medium">Visual Aids</span>
+                        <br />
+                        {autoImageEnabled ? "✅ Auto-generate images" : "❌ Images disabled"}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
 
-              {/* Help */}
-              <Tooltip>
-                <TooltipTrigger asChild>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setAutoMindMapEnabled(!autoMindMapEnabled)}
+                        className={`h-7 w-7 p-0 rounded-lg transition-all duration-300 ${
+                          autoMindMapEnabled 
+                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md' 
+                            : 'hover:bg-background/80'
+                        }`}
+                      >
+                        <Brain className={`w-3.5 h-3.5 ${autoMindMapEnabled ? '' : 'opacity-50'}`} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p className="text-xs">
+                        <span className="font-medium">Mind Maps</span>
+                        <br />
+                        {autoMindMapEnabled ? "✅ Interactive maps" : "❌ Maps disabled"}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setAddEmojisEnabled(!addEmojisEnabled)}
+                        className={`h-7 w-7 p-0 rounded-lg transition-all duration-300 ${
+                          addEmojisEnabled 
+                            ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md' 
+                            : 'hover:bg-background/80'
+                        }`}
+                      >
+                        <Sparkles className={`w-3.5 h-3.5 ${addEmojisEnabled ? '' : 'opacity-50'}`} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p className="text-xs">
+                        <span className="font-medium">Emojis</span>
+                        <br />
+                        {addEmojisEnabled ? "✅ Fun emojis added" : "❌ Plain text only"}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+
+              {/* Center: Learning Category Selector */}
+              <div className="flex items-center gap-3">
+                <div className="text-xs font-medium text-muted-foreground">Subject</div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="relative group">
+                      <select 
+                        value={learningCategory}
+                        onChange={(e) => setLearningCategory(e.target.value)}
+                        className="h-10 w-16 appearance-none bg-gradient-to-r from-background to-muted/50 border border-border rounded-xl text-center text-lg hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all duration-200 group-hover:shadow-md"
+                      >
+                        <option value="general">📚</option>
+                        <option value="science">🔬</option>
+                        <option value="math">📐</option>
+                        <option value="history">🏛️</option>
+                        <option value="language">🗣️</option>
+                        <option value="programming">💻</option>
+                        <option value="art">🎨</option>
+                      </select>
+                      <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-xs text-muted-foreground font-medium">
+                        {learningCategory === 'general' && 'General'}
+                        {learningCategory === 'science' && 'Science'}
+                        {learningCategory === 'math' && 'Math'}
+                        {learningCategory === 'history' && 'History'}
+                        {learningCategory === 'language' && 'Language'}
+                        {learningCategory === 'programming' && 'Code'}
+                        {learningCategory === 'art' && 'Art'}
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <div className="text-center">
+                      <p className="font-medium text-sm">Learning Category</p>
+                      <p className="text-xs text-muted-foreground">
+                        Current: {learningCategory === 'general' && 'General Learning'}
+                        {learningCategory === 'science' && 'Science & Biology'}
+                        {learningCategory === 'math' && 'Mathematics'}
+                        {learningCategory === 'history' && 'History'}
+                        {learningCategory === 'language' && 'Language Arts'}
+                        {learningCategory === 'programming' && 'Programming'}
+                        {learningCategory === 'art' && 'Art & Design'}
+                      </p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+
+              {/* Right: Quick Actions */}
+              <div className="flex items-center gap-2">
+                <div className="text-xs font-medium text-muted-foreground mr-2">Quick Actions</div>
+                
+                {/* Settings */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <SettingsModal
+                        autoVoiceEnabled={autoVoiceEnabled}
+                        setAutoVoiceEnabled={setAutoVoiceEnabled}
+                        autoImageEnabled={autoImageEnabled}
+                        setAutoImageEnabled={setAutoImageEnabled}
+                        autoMindMapEnabled={autoMindMapEnabled}
+                        setAutoMindMapEnabled={setAutoMindMapEnabled}
+                        addEmojisEnabled={addEmojisEnabled}
+                        setAddEmojisEnabled={setAddEmojisEnabled}
+                        learningCategory={learningCategory}
+                        setLearningCategory={setLearningCategory}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p className="text-xs">
+                      <span className="font-medium">Advanced Settings</span>
+                      <br />
+                      Configure voice, images, and more
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+
+                {/* Help Toggle */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowHelp(!showHelp)}
+                      className={`h-9 w-9 p-0 rounded-xl transition-all duration-300 ${
+                        showHelp 
+                          ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/25' 
+                          : 'hover:bg-muted/80 hover:scale-105'
+                      }`}
+                    >
+                      <HelpCircle className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p className="text-xs">
+                      <span className="font-medium">Help & Tutorial</span>
+                      <br />
+                      {showHelp ? "Hide tutorial" : "Show learning guide"}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+
+            {/* Enhanced Help Panel */}
+            {showHelp && (
+              <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 via-purple-50 to-cyan-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-cyan-950/30 rounded-xl border border-blue-200/50 dark:border-blue-800/50 animate-in slide-in-from-top duration-300 shadow-lg">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-base text-blue-900 dark:text-blue-100 flex items-center">
+                    <HelpCircle className="w-5 h-5 mr-2" />
+                    Liquid Learning Lab Guide
+                  </h3>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setShowHelp(!showHelp)}
-                    className={`h-8 w-8 p-0 rounded-full feature-button icon-hover transition-all duration-300 ${
-                      showHelp ? 'animate-pulse-glow' : ''
-                    }`}
+                    onClick={() => setShowHelp(false)}
+                    className="h-6 w-6 p-0 rounded-lg hover:bg-blue-200/50 dark:hover:bg-blue-800/50"
                   >
-                    <HelpCircle className={`w-4 h-4 svg-animate ${showHelp ? 'animate-rotate-pulse' : ''}`} />
+                    <X className="w-3 h-3" />
                   </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">
-                    Help & Tutorial
-                    <br />
-                    <span className="text-muted-foreground">Learn how to use all features</span>
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </TooltipProvider>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  {/* AI Features */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-blue-800 dark:text-blue-200 border-b border-blue-200 dark:border-blue-700 pb-1">🤖 AI Features</h4>
+                    <div className="space-y-2 text-blue-700 dark:text-blue-300">
+                      <div className="flex items-start gap-2">
+                        <Volume2 className="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-500" />
+                        <div>
+                          <strong>Voice Assistant:</strong> AI reads all responses aloud with natural speech
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <ImageIcon className="w-4 h-4 mt-0.5 flex-shrink-0 text-purple-500" />
+                        <div>
+                          <strong>Visual Aids:</strong> Automatically generate diagrams and illustrations
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <Brain className="w-4 h-4 mt-0.5 flex-shrink-0 text-green-500" />
+                        <div>
+                          <strong>Mind Maps:</strong> Interactive topic exploration with clickable nodes
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-          {/* Help Panel */}
-          {showHelp && (
-            <div className="mt-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800 animate-in slide-in-from-top duration-300">
-              <h3 className="font-semibold text-sm text-blue-900 dark:text-blue-100 mb-2 flex items-center">
-                <HelpCircle className="w-4 h-4 mr-2" />
-                How to Use Liquid Learning Lab
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-blue-800 dark:text-blue-200">
-                <div className="space-y-2">
-                  <div className="flex items-start space-x-2">
-                    <Volume2 className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <strong>Auto Voice:</strong> AI reads responses aloud automatically. Use voice controls to pause/resume.
+                  {/* Learning Categories */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-blue-800 dark:text-blue-200 border-b border-blue-200 dark:border-blue-700 pb-1">📚 Subject Categories</h4>
+                    <div className="space-y-1 text-blue-700 dark:text-blue-300">
+                      <div>🔬 <strong>Science:</strong> Physics, Chemistry, Biology</div>
+                      <div>📐 <strong>Math:</strong> Algebra, Calculus, Geometry</div>
+                      <div>🏛️ <strong>History:</strong> World events, civilizations</div>
+                      <div>🗣️ <strong>Language:</strong> Grammar, literature, writing</div>
+                      <div>💻 <strong>Programming:</strong> Code, algorithms, tech</div>
+                      <div>🎨 <strong>Art:</strong> Design, creativity, aesthetics</div>
                     </div>
                   </div>
-                  <div className="flex items-start space-x-2">
-                    <ImageIcon className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <strong>Auto Images:</strong> Generate visual aids for better understanding. Click to download or zoom.
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-start space-x-2">
-                    <Brain className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <strong>Mind Maps:</strong> Interactive topic maps you can click to explore deeper.
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <Sparkles className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <strong>Emojis:</strong> Add relevant emojis to make learning more engaging and fun.
+
+                  {/* Pro Tips */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-blue-800 dark:text-blue-200 border-b border-blue-200 dark:border-blue-700 pb-1">💡 Pro Tips</h4>
+                    <div className="space-y-2 text-blue-700 dark:text-blue-300 text-sm">
+                      <div>• Click mind map nodes to explore deeper</div>
+                      <div>• Use voice controls to pause/resume audio</div>
+                      <div>• Right-click images to download or zoom</div>
+                      <div>• Switch subjects for specialized responses</div>
+                      <div>• Enable all features for maximum learning</div>
+                      <div>• Ask follow-up questions for clarification</div>
                     </div>
                   </div>
                 </div>
+
+                <div className="mt-4 pt-3 border-t border-blue-200/50 dark:border-blue-700/50">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                      <Sparkles className="w-4 h-4" />
+                      <span>Try asking: "Explain quantum physics with visuals and mind maps"</span>
+                    </div>
+                    <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+                      New to AI learning? Start here! 🚀
+                    </Badge>
+                  </div>
+                </div>
               </div>
-              <div className="mt-3 pt-2 border-t border-blue-200 dark:border-blue-700">
-                <p className="text-xs text-blue-700 dark:text-blue-300">
-                  💡 <strong>Tip:</strong> Hover over any icon to see what it does. Use the category selector to organize your learning sessions by subject.
-                </p>
-              </div>
-            </div>
-          )}
+            )}
+          </TooltipProvider>
         </div>
       </div>
 
