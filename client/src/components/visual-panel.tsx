@@ -171,9 +171,9 @@ export function VisualPanel({ currentImage, currentMindMap, onClose, conversatio
             </h4>
             
             <div className="bg-muted rounded-xl p-4 min-h-[300px] relative">
-              {currentMindMap || generateMindMapMutation.data ? (
-                <MindMapVisualization data={currentMindMap || generateMindMapMutation.data} />
-              ) : generateMindMapMutation.isPending ? (
+              {currentMindMap ? (
+                <MindMapVisualization data={currentMindMap} />
+              ) : false ? (
                 <div className="flex items-center justify-center h-full">
                   <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                 </div>
@@ -187,57 +187,18 @@ export function VisualPanel({ currentImage, currentMindMap, onClose, conversatio
               )}
             </div>
 
-            {generateMindMapMutation.error && (
-              <p className="text-sm text-destructive">
-                Failed to generate mind map. Please try again.
-              </p>
-            )}
+
           </div>
 
           {/* Quick Actions */}
           <div className="space-y-3">
             <h4 className="font-medium text-sm text-muted-foreground">Quick Actions</h4>
             
-            {/* Custom Image Generation */}
+            {/* Visual Actions */}
             <div className="space-y-2">
-              <input
-                type="text"
-                placeholder="Describe an image to generate..."
-                value={customImagePrompt}
-                onChange={(e) => setCustomImagePrompt(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background"
-                onKeyDown={(e) => e.key === 'Enter' && handleGenerateImage()}
-              />
-              <Button
-                size="sm"
-                className="w-full"
-                onClick={handleGenerateImage}
-                disabled={!customImagePrompt.trim() || generateImageMutation.isPending}
-              >
-                <Image className="w-4 h-4 mr-2" />
-                Generate Image
-              </Button>
-            </div>
-
-            {/* Custom Mind Map Generation */}
-            <div className="space-y-2">
-              <input
-                type="text"
-                placeholder="Topic for mind map..."
-                value={customMindMapTopic}
-                onChange={(e) => setCustomMindMapTopic(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background"
-                onKeyDown={(e) => e.key === 'Enter' && handleGenerateMindMap()}
-              />
-              <Button
-                size="sm"
-                className="w-full"
-                onClick={handleGenerateMindMap}
-                disabled={!customMindMapTopic.trim() || generateMindMapMutation.isPending}
-              >
-                <Map className="w-4 h-4 mr-2" />
-                Create Mind Map
-              </Button>
+              <p className="text-sm text-muted-foreground">
+                Visual aids are automatically generated with each AI response
+              </p>
             </div>
 
             {/* Other Actions */}
