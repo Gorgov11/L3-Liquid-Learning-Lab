@@ -400,25 +400,59 @@ export function InteractiveMindMap({ data, onUpdate, className = "" }: Interacti
             </g>
           )}
 
-          {/* Nodes */}
-          <g>
+          {/* Enhanced Interactive Nodes */}
+          <g className="nodes-layer">
             {nodes.map(node => (
-              <g key={node.id}>
-                {/* Node Circle */}
+              <g key={node.id} className="node-group">
+                {/* Node Background Glow */}
+                {(hoveredNode === node.id || selectedNodes.has(node.id)) && (
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={node.isMainTopic ? 50 : 40}
+                    fill={node.color}
+                    opacity="0.2"
+                    filter="url(#glow)"
+                    className="animate-pulse"
+                  />
+                )}
+                
+                {/* Main Node Circle */}
                 <circle
                   cx={node.x}
                   cy={node.y}
                   r={node.isMainTopic ? 40 : 30}
-                  fill={node.color}
-                  stroke="#fff"
-                  strokeWidth="3"
-                  className={`cursor-pointer transition-all duration-300 ${
-                    hoveredNode === node.id ? 'animate-pulse-glow' : ''
-                  } ${node.isMainTopic ? 'animate-float' : ''}`}
+                  fill={`url(#nodeGradient-${node.id})`}
+                  stroke={node.color}
+                  strokeWidth={node.isMainTopic ? 4 : 3}
+                  filter="url(#dropShadow)"
+                  className={`cursor-pointer transition-all duration-300 hover:scale-110 ${
+                    node.isDragging ? 'scale-110 opacity-80' : ''
+                  } ${node.isMainTopic ? 'animate-pulse' : ''}`}
                   onMouseEnter={() => setHoveredNode(node.id)}
                   onMouseLeave={() => setHoveredNode(null)}
+                  onMouseDown={(e) => handleMouseDown(e, node.id)}
                   onClick={() => handleNodeClick(node.id)}
                 />
+                
+                {/* Node Color Ring */}
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={node.isMainTopic ? 35 : 25}
+                  fill={node.color}
+                  opacity="0.9"
+                  className="pointer-events-none"
+                />
+                
+                {/* Node Gradients */}
+                <defs>
+                  <radialGradient id={`nodeGradient-${node.id}`} cx="30%" cy="30%" r="70%">
+                    <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9"/>
+                    <stop offset="70%" stopColor={node.color} stopOpacity="0.8"/>
+                    <stop offset="100%" stopColor={node.color} stopOpacity="1"/>
+                  </radialGradient>
+                </defs>
 
                 {/* Node Text */}
                 {editingNode === node.id ? (
@@ -516,12 +550,47 @@ export function InteractiveMindMap({ data, onUpdate, className = "" }: Interacti
         </svg>
       </div>
 
-      {/* Instructions */}
-      <div className="mt-3 text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/20 rounded-lg p-2">
-        <p className="flex items-center space-x-1">
-          <Sparkles className="w-3 h-3" />
-          <span><strong>Click</strong> any node to edit • <strong>Hover</strong> to see action buttons • <strong>Green +</strong> adds child topics • <strong>Red trash</strong> deletes nodes</span>
-        </p>
+      {/* Enhanced Instructions */}
+      <div className="mt-4 space-y-2">
+        <div className="text-xs text-blue-700 dark:text-blue-300 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+          <div className="flex items-center space-x-2 mb-2">
+            <Brain className="w-4 h-4 text-blue-600 svg-pulse" />
+            <span className="font-semibold">Enhanced Interactive Features</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span><strong>Click</strong> nodes to edit text</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span><strong>Drag</strong> nodes to reposition</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <span><strong>Hover</strong> for action buttons</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+              <span><strong>Export</strong> mind map data</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center space-x-2">
+            <Badge variant="outline" className="text-xs">
+              Nodes: {nodes.length}
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              Zoom: {Math.round(zoom * 100)}%
+            </Badge>
+          </div>
+          <div className="flex items-center space-x-1">
+            <Sparkles className="w-3 h-3 text-primary svg-bounce" />
+            <span>AI-Enhanced Mind Mapping</span>
+          </div>
+        </div>
       </div>
     </div>
   );
