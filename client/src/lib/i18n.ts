@@ -1,5 +1,4 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { useState, useEffect } from 'react';
 
 // Language definitions
 export const languages = {
@@ -492,36 +491,42 @@ export const translations = {
   }
 } as const;
 
-// Zustand store for language management
-interface LanguageStore {
-  currentLanguage: LanguageCode;
-  setLanguage: (language: LanguageCode) => void;
-  t: (key: keyof typeof translations.en) => string;
+// Simple language store using localStorage
+let currentLang: LanguageCode = 'en';
+
+// Initialize from localStorage
+if (typeof window !== 'undefined') {
+  const stored = localStorage.getItem('language');
+  if (stored && stored in languages) {
+    currentLang = stored as LanguageCode;
+  }
 }
 
-export const useLanguageStore = create<LanguageStore>()(
-  persist(
-    (set, get) => ({
-      currentLanguage: 'en',
-      setLanguage: (language: LanguageCode) => set({ currentLanguage: language }),
-      t: (key: keyof typeof translations.en) => {
-        const { currentLanguage } = get();
-        const translation = translations[currentLanguage]?.[key] || translations.en[key];
-        return translation || key;
-      },
-    }),
-    {
-      name: 'language-storage',
-    }
-  )
-);
+// Translation function
+export const t = (key: keyof typeof translations.en): string => {
+  const translation = translations[currentLang]?.[key] || translations.en[key];
+  return translation || key;
+};
 
 // Hook for easy translation access
 export const useTranslation = () => {
-  const { t, currentLanguage, setLanguage } = useLanguageStore();
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(currentLang);
+  
+  const setLanguage = (language: LanguageCode) => {
+    currentLang = language;
+    setCurrentLanguage(language);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('language', language);
+    }
+  };
+  
+  const translate = (key: keyof typeof translations.en): string => {
+    const translation = translations[currentLanguage]?.[key] || translations.en[key];
+    return translation || key;
+  };
   
   return {
-    t,
+    t: translate,
     currentLanguage,
     setLanguage,
     languages,

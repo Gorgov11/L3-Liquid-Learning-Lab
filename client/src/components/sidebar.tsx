@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Star, History, BarChart3, BookOpen, GraduationCap, X, Brain, Lightbulb, TrendingUp, Zap, Sparkles, MapPin, Archive } from 'lucide-react';
+import { Plus, Star, History, BarChart3, BookOpen, GraduationCap, X, Brain, Lightbulb, TrendingUp, Zap, Sparkles, MapPin, Archive, Settings, Globe, Users, Trophy, Calendar, Target, FileText } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
+import { LanguageSelector } from './language-selector';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { ConversationData, UserInterestData } from '@/lib/types';
@@ -160,49 +161,105 @@ export function Sidebar({
               </Button>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Button 
                 onClick={onNewChat}
-                className="w-full bg-gradient-to-r from-primary to-chart-2 hover:opacity-90"
+                className="w-full bg-gradient-to-r from-primary to-chart-2 hover:opacity-90 h-10"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Start Learning
               </Button>
               
-              {/* Navigation Links */}
-              <div className="grid grid-cols-2 gap-2">
+              {/* Main Navigation - Styled like your image */}
+              <div className="space-y-1">
+                <Link href="/">
+                  <Button
+                    variant={location === '/' ? "secondary" : "ghost"}
+                    className={`w-full justify-start h-10 px-3 font-medium transition-all duration-200 ${
+                      location === '/' 
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    }`}
+                  >
+                    <BarChart3 className="w-4 h-4 mr-3" />
+                    Learning Dashboard
+                  </Button>
+                </Link>
+                
                 <Link href="/study-materials">
                   <Button
-                    variant={location === '/study-materials' ? "default" : "outline"}
-                    size="sm"
-                    className="w-full text-xs icon-hover"
+                    variant={location === '/study-materials' ? "secondary" : "ghost"}
+                    className={`w-full justify-start h-10 px-3 font-medium transition-all duration-200 ${
+                      location === '/study-materials' 
+                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    }`}
                   >
-                    <Archive className="w-3 h-3 mr-1" />
-                    Materials
+                    <FileText className="w-4 h-4 mr-3" />
+                    Study Materials
                   </Button>
                 </Link>
                 
                 <Link href="/learning-path">
                   <Button
-                    variant={location === '/learning-path' ? "default" : "outline"}
-                    size="sm"
-                    className="w-full text-xs icon-hover"
+                    variant={location === '/learning-path' ? "secondary" : "ghost"}
+                    className={`w-full justify-start h-10 px-3 font-medium transition-all duration-200 ${
+                      location === '/learning-path' 
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    }`}
                   >
-                    <MapPin className="w-3 h-3 mr-1" />
-                    Path
+                    <MapPin className="w-4 h-4 mr-3" />
+                    Learning Path
                   </Button>
                 </Link>
               </div>
               
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowSuggestions(!showSuggestions)}
-                className="w-full text-xs"
-              >
-                <Lightbulb className="w-3 h-3 mr-1" />
-                AI Suggestions
-              </Button>
+              <Separator className="my-4" />
+              
+              {/* Additional Features */}
+              <div className="space-y-1">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start h-10 px-3 font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  onClick={onOpenDashboard}
+                >
+                  <Trophy className="w-4 h-4 mr-3" />
+                  Achievements
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start h-10 px-3 font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  onClick={() => setShowSuggestions(!showSuggestions)}
+                >
+                  <Lightbulb className="w-4 h-4 mr-3" />
+                  AI Suggestions
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start h-10 px-3 font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                >
+                  <Calendar className="w-4 h-4 mr-3" />
+                  Study Schedule
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start h-10 px-3 font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                >
+                  <Users className="w-4 h-4 mr-3" />
+                  Study Groups
+                </Button>
+              </div>
+              
+              <Separator className="my-4" />
+              
+              {/* Language Selector */}
+              <div className="space-y-2">
+                <LanguageSelector />
+              </div>
             </div>
           </div>
 
